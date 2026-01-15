@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { usePrayerTimes } from '@/hooks/usePrayerTimes';
+import { useSilentModeService } from '@/hooks/useSilentModeService';
 import { PrayerCard } from '@/components/PrayerCard';
 import { StatusHeader } from '@/components/StatusHeader';
 import { MosqueDecoration } from '@/components/MosqueDecoration';
@@ -21,6 +22,9 @@ const Index = () => {
     getTimeUntilNextPrayer,
     getTimeUntilSilentModeEnds,
   } = usePrayerTimes();
+
+  // Initialize silent mode service for native notifications
+  useSilentModeService(prayers);
 
   const timeUntilNext = getTimeUntilNextPrayer();
   const timeUntilSilentEnds = getTimeUntilSilentModeEnds();
