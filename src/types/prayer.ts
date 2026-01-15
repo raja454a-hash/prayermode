@@ -7,6 +7,8 @@ export interface Prayer {
   time: string;
   silenceEnabled: boolean;
   silenceDuration: number; // in minutes
+  reminderEnabled: boolean;
+  reminderMinutes: number; // minutes before prayer
 }
 
 export interface PrayerSettings {

@@ -10,7 +10,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Clock, Timer, Save } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Clock, Timer, Bell, Save } from 'lucide-react';
 
 interface PrayerSettingsDialogProps {
   open: boolean;
@@ -40,6 +41,19 @@ export const PrayerSettingsDialog = ({
     );
   };
 
+  const handleReminderToggle = (id: PrayerName) => {
+    setEditedPrayers(prev =>
+      prev.map(p => (p.id === id ? { ...p, reminderEnabled: !p.reminderEnabled } : p))
+    );
+  };
+
+  const handleReminderMinutesChange = (id: PrayerName, minutes: string) => {
+    const numMinutes = parseInt(minutes) || 0;
+    setEditedPrayers(prev =>
+      prev.map(p => (p.id === id ? { ...p, reminderMinutes: Math.max(1, Math.min(60, numMinutes)) } : p))
+    );
+  };
+
   const handleSave = () => {
     onSave(editedPrayers);
     onOpenChange(false);
@@ -59,7 +73,7 @@ export const PrayerSettingsDialog = ({
         <DialogHeader>
           <DialogTitle className="text-foreground text-xl">Prayer Settings</DialogTitle>
           <DialogDescription className="text-muted-foreground">
-            Set the start time and silent duration for each prayer.
+            Set the start time, silent duration, and reminder for each prayer.
           </DialogDescription>
         </DialogHeader>
 
@@ -106,6 +120,33 @@ export const PrayerSettingsDialog = ({
                     className="bg-background border-border text-foreground"
                   />
                 </div>
+              </div>
+
+              {/* Reminder Settings */}
+              <div className="pt-2 border-t border-border/50">
+                <div className="flex items-center justify-between">
+                  <Label className="text-muted-foreground text-sm flex items-center gap-1">
+                    <Bell className="h-3 w-3" />
+                    Reminder Before Prayer
+                  </Label>
+                  <Switch
+                    checked={prayer.reminderEnabled}
+                    onCheckedChange={() => handleReminderToggle(prayer.id)}
+                  />
+                </div>
+                {prayer.reminderEnabled && (
+                  <div className="mt-2 flex items-center gap-2">
+                    <Input
+                      type="number"
+                      min="1"
+                      max="60"
+                      value={prayer.reminderMinutes}
+                      onChange={(e) => handleReminderMinutesChange(prayer.id, e.target.value)}
+                      className="bg-background border-border text-foreground w-20"
+                    />
+                    <span className="text-muted-foreground text-sm">minutes before</span>
+                  </div>
+                )}
               </div>
             </div>
           ))}

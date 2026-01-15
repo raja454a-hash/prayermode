@@ -7,6 +7,7 @@ import { PrayerCard } from '@/components/PrayerCard';
 import { StatusHeader } from '@/components/StatusHeader';
 import { MosqueDecoration } from '@/components/MosqueDecoration';
 import { PrayerSettingsDialog } from '@/components/PrayerSettingsDialog';
+import { ManualSilentToggle } from '@/components/ManualSilentToggle';
 import { UserMenu } from '@/components/auth/UserMenu';
 import { MapPin, Settings, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -24,7 +25,9 @@ const Index = () => {
     currentPrayer,
     nextPrayer,
     isSilentMode,
+    isManualSilent,
     toggleSilenceForPrayer,
+    toggleManualSilent,
     updatePrayers,
     getTimeUntilNextPrayer,
     getTimeUntilSilentModeEnds,
@@ -142,6 +145,14 @@ const Index = () => {
               />
             ))}
           </div>
+        </section>
+
+        {/* Manual Silent Toggle */}
+        <section className="mt-6">
+          <ManualSilentToggle
+            isManualSilent={isManualSilent}
+            onToggle={toggleManualSilent}
+          />
         </section>
 
         {/* Info text */}
