@@ -33,56 +33,73 @@ export const schedulePrayerNotifications = async (prayers: Prayer[]): Promise<vo
     const now = new Date();
     const notifications = [];
 
-    for (let i = 0; i < prayers.length; i++) {
-      const prayer = prayers[i];
-      
-      if (!prayer.silenceEnabled) continue;
+    // Schedule for the next 7 days to handle Friday/weekday logic
+    for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
+      const targetDate = new Date(now);
+      targetDate.setDate(targetDate.getDate() + dayOffset);
+      const isFriday = targetDate.getDay() === 5;
 
-      const [hours, minutes] = prayer.time.split(':').map(Number);
-      
-      // Calculate prayer start time for today
-      const startTime = new Date(now);
-      startTime.setHours(hours, minutes, 0, 0);
-      
-      // If the time has passed today, schedule for tomorrow
-      if (startTime <= now) {
-        startTime.setDate(startTime.getDate() + 1);
+      // Filter prayers based on day
+      const dayPrayers = prayers.filter(p => {
+        if (isFriday) {
+          return p.id !== 'zuhr'; // On Friday, use Jumu'ah instead of Zuhr
+        } else {
+          return p.id !== 'friday'; // Other days, skip Jumu'ah
+        }
+      });
+
+      for (let i = 0; i < dayPrayers.length; i++) {
+        const prayer = dayPrayers[i];
+        
+        if (!prayer.silenceEnabled) continue;
+
+        const [hours, minutes] = prayer.time.split(':').map(Number);
+        
+        // Calculate prayer start time for the target day
+        const startTime = new Date(targetDate);
+        startTime.setHours(hours, minutes, 0, 0);
+        
+        // Skip if the time has already passed
+        if (startTime <= now) continue;
+
+        // Calculate end time based on duration
+        const endTime = new Date(startTime);
+        endTime.setMinutes(endTime.getMinutes() + prayer.silenceDuration);
+
+        // Unique ID based on day offset and prayer index
+        const baseId = NOTIFICATION_BASE_ID + (dayOffset * 100) + i;
+
+        // Notification to start silent mode
+        notifications.push({
+          id: baseId + SILENT_START_OFFSET,
+          title: `🔇 ${prayer.name} - Silent Mode`,
+          body: `Phone entering silent mode for ${prayer.silenceDuration} minutes`,
+          schedule: { at: startTime },
+          extra: {
+            action: 'ENABLE_SILENT',
+            prayerId: prayer.id,
+            prayerName: prayer.name,
+          },
+        });
+
+        // Notification to end silent mode
+        notifications.push({
+          id: baseId + SILENT_END_OFFSET,
+          title: `🔊 ${prayer.name} - Prayer Complete`,
+          body: 'Phone returning to normal mode',
+          schedule: { at: endTime },
+          extra: {
+            action: 'DISABLE_SILENT',
+            prayerId: prayer.id,
+            prayerName: prayer.name,
+          },
+        });
       }
-
-      // Calculate end time based on duration
-      const endTime = new Date(startTime);
-      endTime.setMinutes(endTime.getMinutes() + prayer.silenceDuration);
-
-      // Notification to start silent mode
-      notifications.push({
-        id: NOTIFICATION_BASE_ID + i + SILENT_START_OFFSET,
-        title: `🔇 ${prayer.name} - Silent Mode`,
-        body: `Phone entering silent mode for ${prayer.silenceDuration} minutes`,
-        schedule: { at: startTime },
-        extra: {
-          action: 'ENABLE_SILENT',
-          prayerId: prayer.id,
-          prayerName: prayer.name,
-        },
-      });
-
-      // Notification to end silent mode
-      notifications.push({
-        id: NOTIFICATION_BASE_ID + i + SILENT_END_OFFSET,
-        title: `🔊 ${prayer.name} - Prayer Complete`,
-        body: 'Phone returning to normal mode',
-        schedule: { at: endTime },
-        extra: {
-          action: 'DISABLE_SILENT',
-          prayerId: prayer.id,
-          prayerName: prayer.name,
-        },
-      });
     }
 
     if (notifications.length > 0) {
       await LocalNotifications.schedule({ notifications });
-      console.log(`📅 Scheduled ${notifications.length} notifications for prayer times`);
+      console.log(`📅 Scheduled ${notifications.length} notifications for prayer times (next 7 days)`);
     }
   } catch (error) {
     console.log('Failed to schedule notifications (running in web mode):', error);
