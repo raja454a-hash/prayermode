@@ -1,11 +1,21 @@
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Prayer } from '@/types/prayer';
+import { 
+  enableNativeSilentMode, 
+  disableNativeSilentMode, 
+  checkDndPermission,
+  requestDndPermission,
+  isNativePlatform 
+} from './nativeSilentMode';
 
 // Notification IDs
 const NOTIFICATION_BASE_ID = 1000;
 const SILENT_START_OFFSET = 0;
 const SILENT_END_OFFSET = 100;
 const REMINDER_OFFSET = 200;
+
+// Store previous ringer mode for restoration
+let previousMode: string | null = null;
 
 /**
  * Request permission for local notifications
@@ -145,24 +155,58 @@ export const cancelAllNotifications = async (): Promise<void> => {
 };
 
 /**
- * Listen for notification actions
- * In a native app, this would trigger the Do Not Disturb API
+ * Handle silent mode activation - called when prayer time starts
+ */
+export const activateSilentMode = async (prayerName: string): Promise<void> => {
+  console.log(`🔇 Activating silent mode for ${prayerName} prayer`);
+  
+  if (isNativePlatform()) {
+    const success = await enableNativeSilentMode();
+    if (success) {
+      console.log(`✅ Silent mode activated for ${prayerName}`);
+    } else {
+      console.log(`⚠️ Failed to activate silent mode for ${prayerName}`);
+    }
+  } else {
+    console.log(`📱 [Web Mode] Silent mode would be activated for ${prayerName}`);
+  }
+};
+
+/**
+ * Handle silent mode deactivation - called when prayer duration ends
+ */
+export const deactivateSilentMode = async (prayerName: string): Promise<void> => {
+  console.log(`🔊 Deactivating silent mode after ${prayerName} prayer`);
+  
+  if (isNativePlatform()) {
+    const success = await disableNativeSilentMode();
+    if (success) {
+      console.log(`✅ Normal mode restored after ${prayerName}`);
+    } else {
+      console.log(`⚠️ Failed to restore normal mode after ${prayerName}`);
+    }
+  } else {
+    console.log(`📱 [Web Mode] Normal mode would be restored after ${prayerName}`);
+  }
+};
+
+/**
+ * Listen for notification actions and trigger silent mode changes
  */
 export const setupNotificationListeners = (): void => {
   try {
-    LocalNotifications.addListener('localNotificationReceived', (notification) => {
+    LocalNotifications.addListener('localNotificationReceived', async (notification) => {
       console.log('📬 Notification received:', notification);
       
       const action = notification.extra?.action;
+      const prayerName = notification.extra?.prayerName || 'Prayer';
+      
       if (action === 'ENABLE_SILENT') {
-        console.log('🔇 NATIVE: Activating Do Not Disturb mode');
-        // In native app: NativeSilentMode.enable()
+        await activateSilentMode(prayerName);
       } else if (action === 'DISABLE_SILENT') {
-        console.log('🔊 NATIVE: Deactivating Do Not Disturb mode');
-        // In native app: NativeSilentMode.disable()
+        await deactivateSilentMode(prayerName);
       } else if (action === 'REMINDER') {
-        console.log(`🕌 REMINDER: ${notification.extra?.prayerName} prayer coming up`);
-        // In native app: Show reminder notification / vibrate
+        console.log(`🕌 REMINDER: ${prayerName} prayer coming up`);
       }
     });
 
@@ -177,18 +221,50 @@ export const setupNotificationListeners = (): void => {
 };
 
 /**
+ * Check and request DND permission
+ */
+export const ensureDndPermission = async (): Promise<boolean> => {
+  if (!isNativePlatform()) {
+    console.log('📱 Running in web mode - DND permission not applicable');
+    return true;
+  }
+  
+  const hasPermission = await checkDndPermission();
+  
+  if (!hasPermission) {
+    console.log('🔐 DND permission not granted, requesting...');
+    await requestDndPermission();
+    return false; // User needs to manually grant permission in settings
+  }
+  
+  return true;
+};
+
+/**
  * Initialize the silent mode service
  */
 export const initializeSilentModeService = async (prayers: Prayer[]): Promise<void> => {
   console.log('🚀 Initializing SalahSilent service...');
   
-  const hasPermission = await requestNotificationPermission();
+  // Request notification permission
+  const hasNotificationPermission = await requestNotificationPermission();
   
-  if (hasPermission) {
-    setupNotificationListeners();
-    await schedulePrayerNotifications(prayers);
-    console.log('✅ SalahSilent service initialized successfully');
-  } else {
+  if (!hasNotificationPermission) {
     console.log('⚠️ Notification permission not granted - silent mode scheduling disabled');
+    return;
   }
+  
+  // Check/request DND permission on native platforms
+  const hasDndPermission = await ensureDndPermission();
+  if (!hasDndPermission && isNativePlatform()) {
+    console.log('⚠️ DND permission not granted - user must enable in settings');
+  }
+  
+  // Setup listeners and schedule notifications
+  setupNotificationListeners();
+  await schedulePrayerNotifications(prayers);
+  
+  console.log('✅ SalahSilent service initialized successfully');
+  console.log('📱 Native platform:', isNativePlatform());
+  console.log('🔐 DND permission:', hasDndPermission);
 };
