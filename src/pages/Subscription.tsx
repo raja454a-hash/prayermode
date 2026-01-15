@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useSubscription } from '@/hooks/useSubscription';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ArrowLeft, Check, Crown, Sparkles } from 'lucide-react';
+import { ArrowLeft, Check, Crown, Sparkles, Loader2, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
 
 interface PlanProps {
   name: string;
@@ -15,9 +17,11 @@ interface PlanProps {
   popular?: boolean;
   savings?: string;
   onSelect: () => void;
+  loading?: boolean;
+  disabled?: boolean;
 }
 
-const PlanCard = ({ name, price, period, features, popular, savings, onSelect }: PlanProps) => (
+const PlanCard = ({ name, price, period, features, popular, savings, onSelect, loading, disabled }: PlanProps) => (
   <Card className={cn(
     "bg-card border-border relative overflow-hidden transition-all duration-300",
     popular && "border-secondary shadow-lg shadow-secondary/20 scale-105"
@@ -53,6 +57,7 @@ const PlanCard = ({ name, price, period, features, popular, savings, onSelect }:
       </ul>
       <Button
         onClick={onSelect}
+        disabled={loading || disabled}
         className={cn(
           "w-full",
           popular 
@@ -60,7 +65,14 @@ const PlanCard = ({ name, price, period, features, popular, savings, onSelect }:
             : "bg-muted text-foreground hover:bg-muted/80"
         )}
       >
-        Subscribe Now
+        {loading ? (
+          <>
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            Processing...
+          </>
+        ) : (
+          'Subscribe Now'
+        )}
       </Button>
     </CardContent>
   </Card>
@@ -69,10 +81,49 @@ const PlanCard = ({ name, price, period, features, popular, savings, onSelect }:
 const Subscription = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, profile } = useAuth();
-  const [loading, setLoading] = useState(false);
+  const { user, profile, fetchProfile } = useAuth();
+  const [processingPlan, setProcessingPlan] = useState<'monthly' | 'yearly' | null>(null);
 
-  const handleSubscribe = async (plan: string) => {
+  const {
+    isLoading,
+    isPremium: isPremiumFromStore,
+    monthlyPackage,
+    yearlyPackage,
+    purchaseMonthly,
+    purchaseYearly,
+    restore,
+    refresh,
+  } = useSubscription(user?.id);
+
+  // Update backend when subscription changes
+  const updateBackendSubscription = async (status: 'premium' | 'free') => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ subscription_status: status })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      // Refresh profile to get updated status
+      await fetchProfile(user.id);
+      
+      console.log('💳 Backend subscription status updated:', status);
+    } catch (error) {
+      console.error('Failed to update backend subscription:', error);
+    }
+  };
+
+  // Sync store premium status with backend
+  useEffect(() => {
+    if (isPremiumFromStore && profile?.subscription_status !== 'premium') {
+      updateBackendSubscription('premium');
+    }
+  }, [isPremiumFromStore, profile?.subscription_status]);
+
+  const handleSubscribe = async (plan: 'monthly' | 'yearly') => {
     if (!user) {
       toast({
         title: 'Login Required',
@@ -83,18 +134,56 @@ const Subscription = () => {
       return;
     }
 
-    setLoading(true);
-    
-    // TODO: Integrate with Stripe
-    toast({
-      title: 'Coming Soon',
-      description: `${plan} subscription will be available soon.`,
-    });
-    
-    setLoading(false);
+    setProcessingPlan(plan);
+
+    const success = plan === 'monthly' ? await purchaseMonthly() : await purchaseYearly();
+
+    if (success) {
+      // Update backend
+      await updateBackendSubscription('premium');
+
+      toast({
+        title: 'Welcome to Premium! 🎉',
+        description: 'Your subscription is now active. Enjoy ad-free prayers!',
+      });
+    } else {
+      toast({
+        title: 'Purchase Cancelled',
+        description: 'Your subscription was not completed.',
+        variant: 'destructive',
+      });
+    }
+
+    setProcessingPlan(null);
   };
 
-  const isPremium = profile?.subscription_status === 'premium';
+  const handleRestore = async () => {
+    setProcessingPlan('monthly'); // Show loading state
+    
+    const restored = await restore();
+
+    if (restored) {
+      await updateBackendSubscription('premium');
+      toast({
+        title: 'Purchases Restored',
+        description: 'Your premium subscription has been restored!',
+      });
+    } else {
+      toast({
+        title: 'No Purchases Found',
+        description: 'No previous purchases were found to restore.',
+        variant: 'destructive',
+      });
+    }
+
+    setProcessingPlan(null);
+  };
+
+  const isPremium = profile?.subscription_status === 'premium' || isPremiumFromStore;
+
+  // Get prices from packages or use defaults
+  const monthlyPrice = monthlyPackage?.product?.priceString || '$2.99';
+  const yearlyPrice = yearlyPackage?.product?.priceString || '$19.99';
 
   return (
     <div className="min-h-screen bg-background geometric-pattern">
@@ -115,16 +204,28 @@ const Subscription = () => {
           </div>
         </header>
 
-        {isPremium ? (
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-secondary" />
+          </div>
+        ) : isPremium ? (
           <Card className="bg-card border-secondary">
             <CardContent className="pt-6 text-center">
               <div className="mx-auto w-16 h-16 rounded-full bg-secondary/20 flex items-center justify-center mb-4">
                 <Sparkles className="h-8 w-8 text-secondary" />
               </div>
               <h2 className="text-xl font-bold text-foreground mb-2">You're Premium!</h2>
-              <p className="text-muted-foreground">
+              <p className="text-muted-foreground mb-4">
                 Thank you for supporting SalahSilent. Enjoy your ad-free experience.
               </p>
+              <Button
+                variant="outline"
+                onClick={refresh}
+                className="text-muted-foreground"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Refresh Status
+              </Button>
             </CardContent>
           </Card>
         ) : (
@@ -143,7 +244,7 @@ const Subscription = () => {
             <div className="space-y-4">
               <PlanCard
                 name="Monthly"
-                price="$2.99"
+                price={monthlyPrice}
                 period="month"
                 features={[
                   "Remove all ads",
@@ -151,12 +252,14 @@ const Subscription = () => {
                   "Cloud sync across devices",
                   "Cancel anytime",
                 ]}
-                onSelect={() => handleSubscribe('Monthly')}
+                onSelect={() => handleSubscribe('monthly')}
+                loading={processingPlan === 'monthly'}
+                disabled={processingPlan !== null || !monthlyPackage}
               />
 
               <PlanCard
                 name="Yearly"
-                price="$19.99"
+                price={yearlyPrice}
                 period="year"
                 popular
                 savings="44%"
@@ -167,12 +270,26 @@ const Subscription = () => {
                   "2 months free",
                   "Best value",
                 ]}
-                onSelect={() => handleSubscribe('Yearly')}
+                onSelect={() => handleSubscribe('yearly')}
+                loading={processingPlan === 'yearly'}
+                disabled={processingPlan !== null || !yearlyPackage}
               />
             </div>
 
+            {/* Restore Purchases */}
+            <div className="mt-6 text-center">
+              <Button
+                variant="link"
+                onClick={handleRestore}
+                disabled={processingPlan !== null}
+                className="text-muted-foreground"
+              >
+                Restore Previous Purchase
+              </Button>
+            </div>
+
             {/* Free tier info */}
-            <div className="mt-8 p-4 rounded-xl bg-muted/50 border border-border">
+            <div className="mt-6 p-4 rounded-xl bg-muted/50 border border-border">
               <h3 className="font-semibold text-foreground mb-2">Free Plan</h3>
               <p className="text-sm text-muted-foreground">
                 Continue using SalahSilent with ads. All core features remain available.
