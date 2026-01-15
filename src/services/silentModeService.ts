@@ -5,6 +5,7 @@ import { Prayer } from '@/types/prayer';
 const NOTIFICATION_BASE_ID = 1000;
 const SILENT_START_OFFSET = 0;
 const SILENT_END_OFFSET = 100;
+const REMINDER_OFFSET = 200;
 
 /**
  * Request permission for local notifications
@@ -50,9 +51,6 @@ export const schedulePrayerNotifications = async (prayers: Prayer[]): Promise<vo
 
       for (let i = 0; i < dayPrayers.length; i++) {
         const prayer = dayPrayers[i];
-        
-        if (!prayer.silenceEnabled) continue;
-
         const [hours, minutes] = prayer.time.split(':').map(Number);
         
         // Calculate prayer start time for the target day
@@ -62,38 +60,61 @@ export const schedulePrayerNotifications = async (prayers: Prayer[]): Promise<vo
         // Skip if the time has already passed
         if (startTime <= now) continue;
 
-        // Calculate end time based on duration
-        const endTime = new Date(startTime);
-        endTime.setMinutes(endTime.getMinutes() + prayer.silenceDuration);
-
         // Unique ID based on day offset and prayer index
-        const baseId = NOTIFICATION_BASE_ID + (dayOffset * 100) + i;
+        const baseId = NOTIFICATION_BASE_ID + (dayOffset * 1000) + (i * 10);
 
-        // Notification to start silent mode
-        notifications.push({
-          id: baseId + SILENT_START_OFFSET,
-          title: `🔇 ${prayer.name} - Silent Mode`,
-          body: `Phone entering silent mode for ${prayer.silenceDuration} minutes`,
-          schedule: { at: startTime },
-          extra: {
-            action: 'ENABLE_SILENT',
-            prayerId: prayer.id,
-            prayerName: prayer.name,
-          },
-        });
+        // Schedule reminder notification if enabled
+        if (prayer.reminderEnabled && prayer.reminderMinutes > 0) {
+          const reminderTime = new Date(startTime);
+          reminderTime.setMinutes(reminderTime.getMinutes() - prayer.reminderMinutes);
+          
+          if (reminderTime > now) {
+            notifications.push({
+              id: baseId + REMINDER_OFFSET,
+              title: `🕌 ${prayer.name} in ${prayer.reminderMinutes} minutes`,
+              body: `Prepare for ${prayer.name} prayer`,
+              schedule: { at: reminderTime },
+              extra: {
+                action: 'REMINDER',
+                prayerId: prayer.id,
+                prayerName: prayer.name,
+              },
+            });
+          }
+        }
 
-        // Notification to end silent mode
-        notifications.push({
-          id: baseId + SILENT_END_OFFSET,
-          title: `🔊 ${prayer.name} - Prayer Complete`,
-          body: 'Phone returning to normal mode',
-          schedule: { at: endTime },
-          extra: {
-            action: 'DISABLE_SILENT',
-            prayerId: prayer.id,
-            prayerName: prayer.name,
-          },
-        });
+        // Schedule silent mode notifications if enabled
+        if (prayer.silenceEnabled) {
+          // Calculate end time based on duration
+          const endTime = new Date(startTime);
+          endTime.setMinutes(endTime.getMinutes() + prayer.silenceDuration);
+
+          // Notification to start silent mode
+          notifications.push({
+            id: baseId + SILENT_START_OFFSET,
+            title: `🔇 ${prayer.name} - Silent Mode`,
+            body: `Phone entering silent mode for ${prayer.silenceDuration} minutes`,
+            schedule: { at: startTime },
+            extra: {
+              action: 'ENABLE_SILENT',
+              prayerId: prayer.id,
+              prayerName: prayer.name,
+            },
+          });
+
+          // Notification to end silent mode
+          notifications.push({
+            id: baseId + SILENT_END_OFFSET,
+            title: `🔊 ${prayer.name} - Prayer Complete`,
+            body: 'Phone returning to normal mode',
+            schedule: { at: endTime },
+            extra: {
+              action: 'DISABLE_SILENT',
+              prayerId: prayer.id,
+              prayerName: prayer.name,
+            },
+          });
+        }
       }
     }
 
@@ -139,6 +160,9 @@ export const setupNotificationListeners = (): void => {
       } else if (action === 'DISABLE_SILENT') {
         console.log('🔊 NATIVE: Deactivating Do Not Disturb mode');
         // In native app: NativeSilentMode.disable()
+      } else if (action === 'REMINDER') {
+        console.log(`🕌 REMINDER: ${notification.extra?.prayerName} prayer coming up`);
+        // In native app: Show reminder notification / vibrate
       }
     });
 

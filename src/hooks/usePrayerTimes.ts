@@ -5,12 +5,12 @@ const STORAGE_KEY = 'salahsilent_prayers';
 
 const getDefaultPrayerTimes = (): Prayer[] => {
   return [
-    { id: 'fajr', name: 'Fajr', arabicName: 'الفجر', time: '05:30', silenceEnabled: true, silenceDuration: 20 },
-    { id: 'zuhr', name: 'Zuhr', arabicName: 'الظهر', time: '12:30', silenceEnabled: true, silenceDuration: 20 },
-    { id: 'asr', name: 'Asr', arabicName: 'العصر', time: '15:45', silenceEnabled: true, silenceDuration: 15 },
-    { id: 'maghrib', name: 'Maghrib', arabicName: 'المغرب', time: '18:20', silenceEnabled: true, silenceDuration: 15 },
-    { id: 'isha', name: 'Isha', arabicName: 'العشاء', time: '19:45', silenceEnabled: true, silenceDuration: 20 },
-    { id: 'friday', name: "Jumu'ah", arabicName: 'الجمعة', time: '13:00', silenceEnabled: true, silenceDuration: 45 },
+    { id: 'fajr', name: 'Fajr', arabicName: 'الفجر', time: '05:30', silenceEnabled: true, silenceDuration: 20, reminderEnabled: true, reminderMinutes: 10 },
+    { id: 'zuhr', name: 'Zuhr', arabicName: 'الظهر', time: '12:30', silenceEnabled: true, silenceDuration: 20, reminderEnabled: true, reminderMinutes: 10 },
+    { id: 'asr', name: 'Asr', arabicName: 'العصر', time: '15:45', silenceEnabled: true, silenceDuration: 15, reminderEnabled: true, reminderMinutes: 10 },
+    { id: 'maghrib', name: 'Maghrib', arabicName: 'المغرب', time: '18:20', silenceEnabled: true, silenceDuration: 15, reminderEnabled: true, reminderMinutes: 10 },
+    { id: 'isha', name: 'Isha', arabicName: 'العشاء', time: '19:45', silenceEnabled: true, silenceDuration: 20, reminderEnabled: true, reminderMinutes: 10 },
+    { id: 'friday', name: "Jumu'ah", arabicName: 'الجمعة', time: '13:00', silenceEnabled: true, silenceDuration: 45, reminderEnabled: true, reminderMinutes: 15 },
   ];
 };
 
@@ -41,9 +41,25 @@ export const usePrayerTimes = () => {
   const [nextPrayer, setNextPrayer] = useState<Prayer | null>(null);
   const [isSilentMode, setIsSilentMode] = useState(false);
   const [silentModeEndTime, setSilentModeEndTime] = useState<Date | null>(null);
+  const [isManualSilent, setIsManualSilent] = useState(false);
   
   // Track previous silent mode state to detect transitions
   const prevSilentModeRef = useRef(false);
+
+  // Toggle manual silent mode
+  const toggleManualSilent = useCallback(() => {
+    setIsManualSilent(prev => {
+      const newState = !prev;
+      if (newState) {
+        console.log('🔇 MANUAL SILENT MODE ENABLED');
+        // In native app: NativeSilentMode.enable()
+      } else {
+        console.log('🔊 MANUAL SILENT MODE DISABLED');
+        // In native app: NativeSilentMode.disable()
+      }
+      return newState;
+    });
+  }, []);
 
   // Update current time every second
   useEffect(() => {
@@ -181,9 +197,11 @@ export const usePrayerTimes = () => {
     currentTime,
     currentPrayer,
     nextPrayer,
-    isSilentMode,
+    isSilentMode: isSilentMode || isManualSilent,
+    isManualSilent,
     silentModeEndTime,
     toggleSilenceForPrayer,
+    toggleManualSilent,
     updatePrayers,
     getTimeUntilNextPrayer,
     getTimeUntilSilentModeEnds,

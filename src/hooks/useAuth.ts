@@ -22,13 +22,16 @@ const parsePrayerSchedule = (schedule: Json): Prayer[] => {
   if (!Array.isArray(schedule)) return [];
   return schedule.map((item) => {
     if (typeof item === 'object' && item !== null && !Array.isArray(item)) {
+      const record = item as Record<string, unknown>;
       return {
-        id: String((item as Record<string, unknown>).id || ''),
-        name: String((item as Record<string, unknown>).name || ''),
-        arabicName: String((item as Record<string, unknown>).arabicName || ''),
-        time: String((item as Record<string, unknown>).time || '00:00'),
-        silenceEnabled: Boolean((item as Record<string, unknown>).silenceEnabled),
-        silenceDuration: Number((item as Record<string, unknown>).silenceDuration) || 15,
+        id: String(record.id || ''),
+        name: String(record.name || ''),
+        arabicName: String(record.arabicName || ''),
+        time: String(record.time || '00:00'),
+        silenceEnabled: Boolean(record.silenceEnabled),
+        silenceDuration: Number(record.silenceDuration) || 15,
+        reminderEnabled: record.reminderEnabled !== undefined ? Boolean(record.reminderEnabled) : true,
+        reminderMinutes: Number(record.reminderMinutes) || 10,
       } as Prayer;
     }
     return null;
@@ -168,6 +171,8 @@ export const useAuth = () => {
       time: p.time,
       silenceEnabled: p.silenceEnabled,
       silenceDuration: p.silenceDuration,
+      reminderEnabled: p.reminderEnabled,
+      reminderMinutes: p.reminderMinutes,
     }));
 
     const { data, error } = await supabase
