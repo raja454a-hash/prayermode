@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { usePrayerTimes } from '@/hooks/usePrayerTimes';
 import { useSilentModeService } from '@/hooks/useSilentModeService';
 import { useAuth } from '@/hooks/useAuth';
+import { useAdMob } from '@/hooks/useAdMob';
 import { PrayerCard } from '@/components/PrayerCard';
 import { StatusHeader } from '@/components/StatusHeader';
 import { MosqueDecoration } from '@/components/MosqueDecoration';
@@ -29,6 +30,14 @@ const Index = () => {
     getTimeUntilNextPrayer,
     getTimeUntilSilentModeEnds,
   } = usePrayerTimes();
+
+  const isPremium = profile?.subscription_status === 'premium';
+
+  // Manage AdMob ads - hide for premium users and during prayer
+  useAdMob({
+    isPremium,
+    isSilentMode,
+  });
 
   // Sync prayers from cloud profile when user logs in
   useEffect(() => {
@@ -60,8 +69,6 @@ const Index = () => {
       return p.id !== 'friday';
     }
   });
-
-  const isPremium = profile?.subscription_status === 'premium';
 
   return (
     <div className="min-h-screen bg-background geometric-pattern">
