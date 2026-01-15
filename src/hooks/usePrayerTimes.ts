@@ -4,15 +4,13 @@ import { Prayer, PrayerName } from '@/types/prayer';
 const STORAGE_KEY = 'salahsilent_prayers';
 
 const getDefaultPrayerTimes = (): Prayer[] => {
-  const today = new Date();
-  const isFriday = today.getDay() === 5;
-
   return [
     { id: 'fajr', name: 'Fajr', arabicName: 'الفجر', time: '05:30', silenceEnabled: true, silenceDuration: 20 },
-    { id: 'zuhr', name: isFriday ? "Jumu'ah" : 'Zuhr', arabicName: isFriday ? 'الجمعة' : 'الظهر', time: '12:30', silenceEnabled: true, silenceDuration: isFriday ? 60 : 20 },
+    { id: 'zuhr', name: 'Zuhr', arabicName: 'الظهر', time: '12:30', silenceEnabled: true, silenceDuration: 20 },
     { id: 'asr', name: 'Asr', arabicName: 'العصر', time: '15:45', silenceEnabled: true, silenceDuration: 15 },
     { id: 'maghrib', name: 'Maghrib', arabicName: 'المغرب', time: '18:20', silenceEnabled: true, silenceDuration: 15 },
     { id: 'isha', name: 'Isha', arabicName: 'العشاء', time: '19:45', silenceEnabled: true, silenceDuration: 20 },
+    { id: 'friday', name: "Jumu'ah", arabicName: 'الجمعة', time: '13:00', silenceEnabled: true, silenceDuration: 45 },
   ];
 };
 
@@ -58,6 +56,7 @@ export const usePrayerTimes = () => {
   // Calculate current and next prayer, manage silent mode
   useEffect(() => {
     const now = currentTime;
+    const isFriday = now.getDay() === 5;
     const currentHours = now.getHours();
     const currentMinutes = now.getMinutes();
     const currentTimeInMinutes = currentHours * 60 + currentMinutes;
@@ -67,8 +66,17 @@ export const usePrayerTimes = () => {
     let shouldBeSilent = false;
     let silentEndTime: Date | null = null;
 
-    for (let i = 0; i < prayers.length; i++) {
-      const prayer = prayers[i];
+    // Filter prayers based on day - on Friday, skip Zuhr and use Jumu'ah; other days skip Jumu'ah
+    const todaysPrayers = prayers.filter(p => {
+      if (isFriday) {
+        return p.id !== 'zuhr'; // On Friday, use Jumu'ah instead of Zuhr
+      } else {
+        return p.id !== 'friday'; // Other days, skip Jumu'ah
+      }
+    });
+
+    for (let i = 0; i < todaysPrayers.length; i++) {
+      const prayer = todaysPrayers[i];
       const [hours, minutes] = prayer.time.split(':').map(Number);
       const prayerTimeInMinutes = hours * 60 + minutes;
       const prayerEndTimeInMinutes = prayerTimeInMinutes + prayer.silenceDuration;
@@ -94,8 +102,8 @@ export const usePrayerTimes = () => {
     }
 
     // If no next prayer found, the next is Fajr (tomorrow)
-    if (!foundNext && prayers.length > 0) {
-      foundNext = prayers[0];
+    if (!foundNext && todaysPrayers.length > 0) {
+      foundNext = todaysPrayers[0];
     }
 
     setCurrentPrayer(foundCurrent);
