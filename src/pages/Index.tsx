@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePrayerTimes } from '@/hooks/usePrayerTimes';
 import { useSilentModeService } from '@/hooks/useSilentModeService';
@@ -6,18 +6,15 @@ import { useAuth } from '@/hooks/useAuth';
 import { PrayerCard } from '@/components/PrayerCard';
 import { StatusHeader } from '@/components/StatusHeader';
 import { MosqueDecoration } from '@/components/MosqueDecoration';
-import { PrayerSettingsDialog } from '@/components/PrayerSettingsDialog';
 import { ManualSilentToggle } from '@/components/ManualSilentToggle';
 import { UserMenu } from '@/components/auth/UserMenu';
-import { MapPin, Settings, LogIn } from 'lucide-react';
+import { MapPin, Settings, LogIn, Edit, Crown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Prayer } from '@/types/prayer';
 
 const Index = () => {
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const navigate = useNavigate();
   
-  const { user, profile, loading: authLoading, signOut, updatePrayerSchedule } = useAuth();
+  const { user, profile, loading: authLoading, signOut } = useAuth();
   
   const {
     prayers,
@@ -49,15 +46,6 @@ const Index = () => {
   // Get current prayer name for display
   const currentPrayerData = prayers.find(p => p.id === currentPrayer);
 
-  // Handle saving prayers - save to cloud if logged in
-  const handleSavePrayers = async (newPrayers: Prayer[]) => {
-    updatePrayers(newPrayers);
-    
-    if (user) {
-      await updatePrayerSchedule(newPrayers);
-    }
-  };
-
   const handleSignOut = async () => {
     await signOut();
   };
@@ -72,6 +60,8 @@ const Index = () => {
       return p.id !== 'friday';
     }
   });
+
+  const isPremium = profile?.subscription_status === 'premium';
 
   return (
     <div className="min-h-screen bg-background geometric-pattern">
@@ -88,10 +78,20 @@ const Index = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {!isPremium && user && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate('/subscription')}
+                className="text-secondary hover:text-secondary hover:bg-secondary/10"
+              >
+                <Crown className="h-5 w-5" />
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setSettingsOpen(true)}
+              onClick={() => navigate('/settings')}
               className="text-muted-foreground hover:text-foreground hover:bg-muted"
             >
               <Settings className="h-5 w-5" />
@@ -109,7 +109,7 @@ const Index = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => navigate('/auth')}
+                onClick={() => navigate('/login')}
                 className="text-muted-foreground hover:text-foreground hover:bg-muted"
               >
                 <LogIn className="h-5 w-5" />
@@ -130,10 +130,21 @@ const Index = () => {
 
         {/* Prayer times section */}
         <section>
-          <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-secondary" />
-            {isFriday ? "Friday Prayers" : "Today's Prayers"}
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-secondary" />
+              {isFriday ? "Friday Prayers" : "Today's Prayers"}
+            </h2>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/schedule')}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <Edit className="h-4 w-4 mr-1" />
+              Edit
+            </Button>
+          </div>
 
           <div className="space-y-3">
             {todaysPrayers.map((prayer) => (
@@ -167,14 +178,6 @@ const Index = () => {
       <div className="fixed bottom-0 left-0 right-0 pointer-events-none">
         <MosqueDecoration />
       </div>
-
-      {/* Settings Dialog */}
-      <PrayerSettingsDialog
-        open={settingsOpen}
-        onOpenChange={setSettingsOpen}
-        prayers={prayers}
-        onSave={handleSavePrayers}
-      />
     </div>
   );
 };
