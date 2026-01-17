@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      payment_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          gateway: string
+          gateway_reference: string | null
+          id: string
+          metadata: Json | null
+          plan_type: string
+          status: string
+          transaction_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          gateway: string
+          gateway_reference?: string | null
+          id?: string
+          metadata?: Json | null
+          plan_type: string
+          status?: string
+          transaction_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          gateway?: string
+          gateway_reference?: string | null
+          id?: string
+          metadata?: Json | null
+          plan_type?: string
+          status?: string
+          transaction_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
