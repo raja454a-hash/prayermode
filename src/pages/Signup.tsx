@@ -54,7 +54,7 @@ const Signup = () => {
     } else {
       toast({
         title: 'Account Created!',
-        description: 'Welcome to SalahSilent.',
+        description: 'Welcome to Prayer Mode.',
       });
       navigate('/');
     }
@@ -69,8 +69,8 @@ const Signup = () => {
           <CardHeader className="text-center">
             <CardTitle className="text-2xl">
               <span className="text-foreground">Join </span>
-              <span className="text-foreground">Salah</span>
-              <span className="text-gradient-gold">Silent</span>
+              <span className="text-foreground">Prayer</span>
+              <span className="text-gradient-gold"> Mode</span>
             </CardTitle>
             <CardDescription className="text-muted-foreground">
               Create an account to sync your prayer settings

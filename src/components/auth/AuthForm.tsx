@@ -159,7 +159,7 @@ export const AuthForm = ({ onSignUp, onSignIn, onResetPassword }: AuthFormProps)
   return (
     <Card className="w-full max-w-md bg-card/95 backdrop-blur border-primary/20">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl text-primary">SalahSilent</CardTitle>
+        <CardTitle className="text-2xl text-primary">Prayer Mode</CardTitle>
         <CardDescription>Sign in to sync your prayer settings</CardDescription>
       </CardHeader>
       <CardContent>
