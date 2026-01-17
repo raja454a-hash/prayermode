@@ -244,7 +244,7 @@ export const ensureDndPermission = async (): Promise<boolean> => {
  * Initialize the silent mode service
  */
 export const initializeSilentModeService = async (prayers: Prayer[]): Promise<void> => {
-  console.log('🚀 Initializing SalahSilent service...');
+  console.log('🚀 Initializing Prayer Mode service...');
   
   // Request notification permission
   const hasNotificationPermission = await requestNotificationPermission();
@@ -264,7 +264,7 @@ export const initializeSilentModeService = async (prayers: Prayer[]): Promise<vo
   setupNotificationListeners();
   await schedulePrayerNotifications(prayers);
   
-  console.log('✅ SalahSilent service initialized successfully');
+  console.log('✅ Prayer Mode service initialized successfully');
   console.log('📱 Native platform:', isNativePlatform());
   console.log('🔐 DND permission:', hasDndPermission);
 };

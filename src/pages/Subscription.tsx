@@ -216,7 +216,7 @@ const Subscription = () => {
               </div>
               <h2 className="text-xl font-bold text-foreground mb-2">You're Premium!</h2>
               <p className="text-muted-foreground mb-4">
-                Thank you for supporting SalahSilent. Enjoy your ad-free experience.
+                Thank you for supporting Prayer Mode. Enjoy your ad-free experience.
               </p>
               <Button
                 variant="outline"
@@ -292,7 +292,7 @@ const Subscription = () => {
             <div className="mt-6 p-4 rounded-xl bg-muted/50 border border-border">
               <h3 className="font-semibold text-foreground mb-2">Free Plan</h3>
               <p className="text-sm text-muted-foreground">
-                Continue using SalahSilent with ads. All core features remain available.
+                Continue using Prayer Mode with ads. All core features remain available.
               </p>
             </div>
           </>

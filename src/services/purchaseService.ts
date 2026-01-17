@@ -2,8 +2,8 @@ import { Purchases, LOG_LEVEL, PurchasesPackage, CustomerInfo, PACKAGE_TYPE } fr
 
 // Product IDs - configure these in Google Play Console and RevenueCat
 export const PRODUCT_IDS = {
-  MONTHLY: 'salahsilent_premium_monthly',
-  YEARLY: 'salahsilent_premium_yearly',
+  MONTHLY: 'prayermode_premium_monthly',
+  YEARLY: 'prayermode_premium_yearly',
 };
 
 // Entitlement ID from RevenueCat

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Prayer, PrayerName } from '@/types/prayer';
 
-const STORAGE_KEY = 'salahsilent_prayers';
+const STORAGE_KEY = 'prayermode_prayers';
 
 const getDefaultPrayerTimes = (): Prayer[] => {
   return [
