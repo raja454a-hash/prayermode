@@ -7,14 +7,14 @@ echo "🔧 Setting up Android native files..."
 ANDROID_JAVA_DIR="android/app/src/main/java/app/lovable/salahsilent"
 MANIFEST="android/app/src/main/AndroidManifest.xml"
 MAIN_ACTIVITY="android/app/src/main/java/app/lovable/ab6a103a2b2c41e886e0e52e98783e98/MainActivity.java"
-SOURCE_DIR="android/app/src/main/java/app/lovable/salahsilent"
+SOURCE_DIR="native-sources/android"
 
 # Step 1: Create package directory and copy Java files
-echo "📂 Copying custom Java files..."
+echo "📂 Copying custom Java files from $SOURCE_DIR..."
 mkdir -p "$ANDROID_JAVA_DIR"
-cp "$SOURCE_DIR/SilentModePlugin.java" "$ANDROID_JAVA_DIR/" 2>/dev/null || true
-cp "$SOURCE_DIR/PrayerAlarmReceiver.java" "$ANDROID_JAVA_DIR/" 2>/dev/null || true
-cp "$SOURCE_DIR/BootReceiver.java" "$ANDROID_JAVA_DIR/" 2>/dev/null || true
+cp "$SOURCE_DIR/SilentModePlugin.java" "$ANDROID_JAVA_DIR/"
+cp "$SOURCE_DIR/PrayerAlarmReceiver.java" "$ANDROID_JAVA_DIR/"
+cp "$SOURCE_DIR/BootReceiver.java" "$ANDROID_JAVA_DIR/"
 
 # Step 2: Patch AndroidManifest.xml - Add permissions before <application>
 echo "📝 Patching AndroidManifest.xml with permissions..."
