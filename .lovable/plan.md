@@ -1,18 +1,23 @@
 
 
-# Fix: Node.js Version Update
+# Fix: "Android platform already exists" Error
 
 ## Problem
-Capacitor CLI v8 requires Node.js 22+, but the GitHub Actions workflow is using Node.js 20.
+`android` folder pehle se GitHub repository mein hai, isliye `npx cap add android` fail ho raha hai.
 
 ## Solution
-Change `node-version: 20` to `node-version: 22` in the workflow file (line 19).
+Workflow mein `npx cap add android` se pehle purani `android` directory delete kar denge, taaki fresh platform add ho sake.
 
 ## Technical Details
 - **File**: `.github/workflows/build-android.yml`
-- **Change**: Line 19: `node-version: 20` -> `node-version: 22`
-- Only one line change needed
+- **Change**: Line 37-38 mein `npx cap add android` se pehle `rm -rf android` add karenge:
 
-## After Fix
-GitHub pe dobara push karo, build successfully complete hoga.
+```yaml
+- name: Add Android platform
+  run: |
+    rm -rf android
+    npx cap add android
+```
+
+Bas ye ek change hai - push karne ke baad build successful hoga.
 
