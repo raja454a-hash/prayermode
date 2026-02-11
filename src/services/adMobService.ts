@@ -3,8 +3,8 @@ import { AdMob, BannerAdOptions, BannerAdSize, BannerAdPosition, BannerAdPluginE
 // Test Ad Unit IDs (replace with real IDs in production)
 const AD_UNIT_IDS = {
   banner: {
-    android: 'ca-app-pub-3940256099942544/6300978111', // Test ID
-    ios: 'ca-app-pub-3940256099942544/2934735716', // Test ID
+    android: 'ca-app-pub-6289432096637084/1857073079',
+    ios: 'ca-app-pub-6289432096637084/1857073079',
   },
 };
 
@@ -18,10 +18,7 @@ export const initializeAdMob = async (): Promise<boolean> => {
   if (isInitialized) return true;
 
   try {
-    await AdMob.initialize({
-      testingDevices: ['EMULATOR'],
-      initializeForTesting: true, // Remove in production
-    });
+    await AdMob.initialize();
 
     // Set up event listeners
     AdMob.addListener(BannerAdPluginEvents.Loaded, () => {
@@ -57,11 +54,10 @@ export const showBannerAd = async (): Promise<void> => {
 
   try {
     const options: BannerAdOptions = {
-      adId: AD_UNIT_IDS.banner.android, // Will use appropriate ID based on platform
+      adId: AD_UNIT_IDS.banner.android,
       adSize: BannerAdSize.ADAPTIVE_BANNER,
       position: BannerAdPosition.BOTTOM_CENTER,
       margin: 0,
-      isTesting: true, // Remove in production
     };
 
     await AdMob.showBanner(options);
