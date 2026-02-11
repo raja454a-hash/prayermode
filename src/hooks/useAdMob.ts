@@ -4,6 +4,7 @@ import {
   showBannerAd,
   hideBannerAd,
   removeBannerAd,
+  showAppOpenAd,
 } from '@/services/adMobService';
 
 interface UseAdMobOptions {
@@ -29,6 +30,12 @@ export const useAdMob = ({ isPremium, isSilentMode }: UseAdMobOptions) => {
       if (!isInitializedRef.current) {
         await initializeAdMob();
         isInitializedRef.current = true;
+
+        // Show App Open Ad on first launch (only for free users, not during prayer)
+        if (shouldShowAds) {
+          await showAppOpenAd();
+          console.log('📢 App Open Ad triggered on launch');
+        }
       }
     };
 
@@ -70,5 +77,6 @@ export const useAdMob = ({ isPremium, isSilentMode }: UseAdMobOptions) => {
     shouldShowAds,
     showBannerAd,
     hideBannerAd,
+    showAppOpenAd,
   };
 };
