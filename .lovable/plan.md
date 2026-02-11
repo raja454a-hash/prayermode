@@ -1,59 +1,59 @@
 
 
-# Phone Silent Mode Fix
+# GitHub Actions se Automatic APK Build
 
-## Problem
-App phone ko actually silent nahi kar raha kyunki:
-1. Manual silent toggle sirf screen pe status change karta hai, phone ki actual setting nahi badalti
-2. Prayer time pe background mein silent mode activate nahi hota - sirf notification aata hai lekin phone silent nahi hota
-3. Android ka `PrayerAlarmReceiver` code likha hua hai lekin kabhi use nahi ho raha
+## Kya hoga?
+Jab bhi aap Lovable mein changes karenge aur wo GitHub pe push hongi, ek automatic process chalegi jo aapke liye APK file bana degi. Aapko bas wo APK download karke phone pe install karna hoga - Android Studio ki zaroorat nahi!
 
-## Solution
+## Kaise kaam karega?
 
-### 1. Manual Toggle Fix (`src/hooks/usePrayerTimes.ts`)
-- `toggleManualSilent` function mein `enableNativeSilentMode()` aur `disableNativeSilentMode()` call karenge
-- Ab manual button dabane se phone actually silent hoga
+1. **GitHub Actions Workflow File** banayenge (`.github/workflows/build-android.yml`)
+   - Jab bhi code GitHub pe push hoga, ye automatically chalega
+   - Cloud mein Android SDK use karke APK build karega
+   - APK file download ke liye available hogi GitHub pe
 
-### 2. Native Alarm Scheduling (`src/services/nativeSilentMode.ts`)
-- Plugin interface mein naye methods add karenge: `scheduleAlarm()` aur `cancelAllAlarms()`
-- Ye Android ke AlarmManager ko use karke background mein PrayerAlarmReceiver trigger karega
-- App band hone ke baad bhi kaam karega
+2. **Build Script** jo ye steps karega:
+   - `npm install` - dependencies install
+   - `npm run build` - web app build
+   - `npx cap add android` - Android project generate
+   - Custom Java files (SilentModePlugin, PrayerAlarmReceiver, BootReceiver) ko sahi jagah copy
+   - AndroidManifest mein permissions aur receivers add
+   - `npx cap sync` - Capacitor sync
+   - Gradle se APK build
 
-### 3. Android Plugin Update (`SilentModePlugin.java`)
-- `scheduleAlarm()` method add karenge jo Android AlarmManager use karke exact time pe PrayerAlarmReceiver trigger kare
-- `cancelAllAlarms()` method add karenge
-- Ye ensure karega ke app band hone ke baad bhi phone silent ho
+3. **AndroidManifest Setup Script** - ek helper script jo automatically:
+   - Custom permissions add kare
+   - BroadcastReceivers register kare
+   - AdMob meta-data add kare
+   - SilentModePlugin register kare in MainActivity
 
-### 4. Silent Mode Service Update (`src/services/silentModeService.ts`)
-- Native platform pe LocalNotifications ke saath saath native alarms bhi schedule karenge
-- Notifications sirf user ko dikhaane ke liye, actual silent mode AlarmManager se hoga
-
-### 5. Notification Listener Backup (`src/services/silentModeService.ts`)
-- Foreground mein notification listener bhi kaam karta rahega as backup
+## APK Download kaise karenge?
+1. GitHub pe apne repository mein jayein
+2. "Actions" tab pe click karein
+3. Latest build pe click karein
+4. "Artifacts" section mein APK file milegi - download karein
+5. Phone pe install karein (Settings > "Install from unknown sources" enable karna hoga)
 
 ## Technical Details
 
-```text
-Current Flow (broken):
-  Prayer Time --> LocalNotification fires
-                  --> Listener (only works if app is open)
-                  --> enableSilentMode() never called when app closed
+### Files to Create:
 
-Fixed Flow:
-  Prayer Time --> AlarmManager triggers PrayerAlarmReceiver
-                  --> Directly enables DND/Silent (works even app closed)
-              --> LocalNotification shows info to user (visual only)
-```
+1. **`.github/workflows/build-android.yml`** - GitHub Actions workflow
+   - Uses: `actions/setup-java@v4` (Java 17)
+   - Uses: `actions/setup-node@v4` (Node 20)
+   - Android SDK setup via `android-actions/setup-android@v3`
+   - Steps: npm install, build, cap add android, copy native files, cap sync, gradle build
+   - Uploads APK as artifact
 
-### Files to Change:
-1. **`src/hooks/usePrayerTimes.ts`** - Manual toggle mein native API call
-2. **`src/services/nativeSilentMode.ts`** - `scheduleAlarm` / `cancelAllAlarms` methods
-3. **`android/app/src/main/java/app/lovable/salahsilent/SilentModePlugin.java`** - AlarmManager scheduling
-4. **`src/services/silentModeService.ts`** - Native alarms schedule karna alongside notifications
+2. **`scripts/setup-android.sh`** - Shell script to:
+   - Copy custom Java files to correct Android paths
+   - Patch AndroidManifest.xml with permissions and receivers
+   - Register SilentModePlugin in MainActivity.java
+   - Make the workflow clean and maintainable
 
-### Important Note
-Changes ke baad user ko:
-- Git pull karke `npx cap sync` run karna hoga
-- App rebuild karni hogi (`npx cap run android`)
-- DND permission grant karni hogi (app pehli baar open karne pe prompt aayega)
+### Important Considerations:
+- APK will be debug build (unsigned) - phone pe install karne ke liye "Unknown Sources" enable karna hoga
+- Har push pe naya APK automatically banega
+- Build mein roughly 5-10 minute lagenge
+- GitHub Free account pe monthly 2000 minutes milte hain (kaafi hai)
 
