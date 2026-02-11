@@ -35,7 +35,9 @@ jobs:
         run: npm run build
 
       - name: Add Android platform
-        run: npx cap add android
+        run: |
+          rm -rf android
+          npx cap add android
 
       - name: Setup Android native files
         run: |
