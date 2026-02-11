@@ -1,27 +1,31 @@
 
 
-# Google AdMob Production IDs Setup
+# App Open Ad Integration
 
 ## Overview
-Test AdMob IDs ko real production IDs se replace karna hai.
+App Open Ad add karenge jo app launch ya foreground mein aane pe dikhega. Ye ad sirf free users ko dikhega, premium users aur prayer time mein nahi.
 
-## IDs to Configure
-- **Application ID**: `ca-app-pub-6289432096637084~6197238375`
-- **Banner Ad Unit ID**: `ca-app-pub-6289432096637084/1857073079`
+## Ad Unit ID
+- **App Open Ad**: `ca-app-pub-6289432096637084/1585610337`
 
 ## Changes
 
 ### 1. `src/services/adMobService.ts`
-- Banner ad unit ID update: `ca-app-pub-6289432096637084/1857073079`
-- `initializeForTesting: true` remove karna
-- `isTesting: true` remove karna from banner options
-- `testingDevices` array remove karna
+- AD_UNIT_IDS mein `appOpen` key add karenge with ID `ca-app-pub-6289432096637084/1585610337`
+- Naya function `showAppOpenAd()` banayenge jo `AdMob.showAppOpenAd()` call karega
+- App Open Ad events ke listeners add karenge (Loaded, Failed, Showed, Closed)
 
-### 2. `android/app/src/main/AndroidManifest-additions.xml`
-- AdMob Application ID update: `ca-app-pub-6289432096637084~6197238375`
+### 2. `src/hooks/useAdMob.ts`
+- `showAppOpenAd` import karenge adMobService se
+- App launch pe (component mount hone pe) ek baar App Open Ad show karenge - sirf free users ke liye
+- `showAppOpenAd` function return karenge hook se taake manually bhi trigger kar sakein
+
+### 3. `src/pages/Index.tsx`
+- Koi change nahi - useAdMob hook automatically handle karega
 
 ## Technical Details
-- Test mode flags (`initializeForTesting`, `isTesting`, `testingDevices`) hatane se real ads show hongi
-- AndroidManifest mein Application ID zaroori hai warna app crash ho sakti hai
-- Existing ad show/hide logic (premium users aur prayer time) same rahega
+- `@capacitor-community/admob` plugin mein `showAppOpenAd()` method built-in hai
+- App Open Ad sirf ek baar dikhega jab app open hoga (mount pe)
+- Premium users aur prayer time mein ad skip ho jayegi
+- Web mode mein gracefully fail hoga (console log)
 
