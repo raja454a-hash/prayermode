@@ -34,7 +34,7 @@ jobs:
       - name: Build web app
         run: npm run build
 
-      - name: Add Android platform
+      - name: Remove existing Android platform and re-add
         run: |
           rm -rf android
           npx cap add android
