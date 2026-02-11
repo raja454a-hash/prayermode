@@ -1,31 +1,29 @@
 
 
-# App Open Ad Integration
+# Privacy Policy Page
 
 ## Overview
-App Open Ad add karenge jo app launch ya foreground mein aane pe dikhega. Ye ad sirf free users ko dikhega, premium users aur prayer time mein nahi.
-
-## Ad Unit ID
-- **App Open Ad**: `ca-app-pub-6289432096637084/1585610337`
+Contact Support page jaisa hi ek Privacy Policy page banayenge, same design pattern follow karke.
 
 ## Changes
 
-### 1. `src/services/adMobService.ts`
-- AD_UNIT_IDS mein `appOpen` key add karenge with ID `ca-app-pub-6289432096637084/1585610337`
-- Naya function `showAppOpenAd()` banayenge jo `AdMob.showAppOpenAd()` call karega
-- App Open Ad events ke listeners add karenge (Loaded, Failed, Showed, Closed)
+### 1. `src/pages/PrivacyPolicy.tsx` (New File)
+- Settings jaisa header with back button (navigate to `/settings`)
+- Card-based layout mein Privacy Policy content:
+  - Introduction / App ka naam "Prayer Mode"
+  - Information Collection (kya data collect hota hai)
+  - How We Use Information
+  - Data Storage and Security
+  - Third-Party Services (AdMob, RevenueCat)
+  - Children's Privacy
+  - Changes to Policy
+  - Contact Us section (support@prayermode.app link)
+- Same styling: `bg-background geometric-pattern`, `max-w-md mx-auto`
 
-### 2. `src/hooks/useAdMob.ts`
-- `showAppOpenAd` import karenge adMobService se
-- App launch pe (component mount hone pe) ek baar App Open Ad show karenge - sirf free users ke liye
-- `showAppOpenAd` function return karenge hook se taake manually bhi trigger kar sakein
+### 2. `src/App.tsx`
+- `/privacy` route add karenge
+- `PrivacyPolicy` component import karenge
 
-### 3. `src/pages/Index.tsx`
-- Koi change nahi - useAdMob hook automatically handle karega
-
-## Technical Details
-- `@capacitor-community/admob` plugin mein `showAppOpenAd()` method built-in hai
-- App Open Ad sirf ek baar dikhega jab app open hoga (mount pe)
-- Premium users aur prayer time mein ad skip ho jayegi
-- Web mode mein gracefully fail hoga (console log)
+### 3. `src/pages/Settings.tsx`
+- "Privacy Policy" button ko update karenge - "Coming Soon" toast ki jagah `/privacy` pe navigate karega
 
