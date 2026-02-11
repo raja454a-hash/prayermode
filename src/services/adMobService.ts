@@ -6,6 +6,10 @@ const AD_UNIT_IDS = {
     android: 'ca-app-pub-6289432096637084/1857073079',
     ios: 'ca-app-pub-6289432096637084/1857073079',
   },
+  appOpen: {
+    android: 'ca-app-pub-6289432096637084/1585610337',
+    ios: 'ca-app-pub-6289432096637084/1585610337',
+  },
 };
 
 let isInitialized = false;
@@ -101,4 +105,20 @@ export const removeBannerAd = async (): Promise<void> => {
  */
 export const isBannerAdVisible = (): boolean => {
   return isBannerVisible;
+};
+
+/**
+ * Show App Open Ad (full screen ad on app launch/foreground)
+ */
+export const showAppOpenAd = async (): Promise<void> => {
+  try {
+    await AdMob.prepareInterstitial({
+      adId: AD_UNIT_IDS.appOpen.android,
+    });
+    console.log('📢 App Open Ad prepared, now showing...');
+    await AdMob.showInterstitial();
+    console.log('📢 App Open Ad shown');
+  } catch (error) {
+    console.log('📢 Failed to show App Open Ad (running in web mode):', error);
+  }
 };
