@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { enableNativeSilentMode, disableNativeSilentMode, isNativePlatform } from '@/services/nativeSilentMode';
 import { Prayer, PrayerName } from '@/types/prayer';
 
 const STORAGE_KEY = 'prayermode_prayers';
@@ -47,19 +48,22 @@ export const usePrayerTimes = () => {
   const prevSilentModeRef = useRef(false);
 
   // Toggle manual silent mode
-  const toggleManualSilent = useCallback(() => {
-    setIsManualSilent(prev => {
-      const newState = !prev;
+  const toggleManualSilent = useCallback(async () => {
+    const newState = !isManualSilent;
+    setIsManualSilent(newState);
+    
+    if (isNativePlatform()) {
       if (newState) {
         console.log('🔇 MANUAL SILENT MODE ENABLED');
-        // In native app: NativeSilentMode.enable()
+        await enableNativeSilentMode();
       } else {
         console.log('🔊 MANUAL SILENT MODE DISABLED');
-        // In native app: NativeSilentMode.disable()
+        await disableNativeSilentMode();
       }
-      return newState;
-    });
-  }, []);
+    } else {
+      console.log(newState ? '🔇 Manual silent (web mode)' : '🔊 Manual normal (web mode)');
+    }
+  }, [isManualSilent]);
 
   // Update current time every second
   useEffect(() => {
