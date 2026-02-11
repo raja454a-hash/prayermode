@@ -165,7 +165,7 @@ const Settings = () => {
               <SettingRow
                 icon={<Shield className="h-5 w-5" />}
                 title="Privacy Policy"
-                onClick={() => toast({ title: 'Coming Soon', description: 'Privacy policy page will be added.' })}
+                onClick={() => navigate('/privacy')}
               />
               <div className="border-t border-border" />
               <SettingRow
