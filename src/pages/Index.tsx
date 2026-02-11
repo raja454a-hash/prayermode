@@ -77,7 +77,7 @@ const Index = () => {
         <header className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold text-foreground">
-              Salah<span className="text-gradient-gold">Silent</span>
+              Prayer<span className="text-gradient-gold">Mode</span>
             </h1>
             <div className="flex items-center gap-1 text-muted-foreground text-sm">
               <MapPin className="h-3 w-3" />
