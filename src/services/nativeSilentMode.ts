@@ -10,6 +10,8 @@ interface SilentModePlugin {
   checkDndPermission(): Promise<{ granted: boolean }>;
   requestDndPermission(): Promise<{ opened: boolean }>;
   getSilentModeStatus(): Promise<{ isSilent: boolean; mode: string }>;
+  scheduleAlarm(options: { triggerAtMillis: number; action: string; prayerName: string; requestCode: number }): Promise<{ success: boolean }>;
+  cancelAllAlarms(): Promise<{ success: boolean }>;
 }
 
 // Register the native plugin
@@ -79,6 +81,39 @@ export const getSilentModeStatus = async (): Promise<{ isSilent: boolean; mode: 
   } catch (error) {
     console.log('Failed to get silent mode status (web fallback):', error);
     return { isSilent: false, mode: 'unknown' };
+  }
+};
+
+/**
+ * Schedule a native alarm via AlarmManager
+ */
+export const scheduleNativeAlarm = async (
+  triggerAtMillis: number,
+  action: string,
+  prayerName: string,
+  requestCode: number
+): Promise<boolean> => {
+  try {
+    const result = await SilentMode.scheduleAlarm({ triggerAtMillis, action, prayerName, requestCode });
+    console.log(`⏰ Native alarm scheduled: ${action} for ${prayerName} at ${new Date(triggerAtMillis).toLocaleTimeString()}`);
+    return result.success;
+  } catch (error) {
+    console.log('Failed to schedule native alarm (web fallback):', error);
+    return false;
+  }
+};
+
+/**
+ * Cancel all native alarms
+ */
+export const cancelAllNativeAlarms = async (): Promise<boolean> => {
+  try {
+    const result = await SilentMode.cancelAllAlarms();
+    console.log('🗑️ All native alarms cancelled');
+    return result.success;
+  } catch (error) {
+    console.log('Failed to cancel native alarms (web fallback):', error);
+    return false;
   }
 };
 

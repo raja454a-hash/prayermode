@@ -5,7 +5,9 @@ import {
   disableNativeSilentMode, 
   checkDndPermission,
   requestDndPermission,
-  isNativePlatform 
+  isNativePlatform,
+  scheduleNativeAlarm,
+  cancelAllNativeAlarms,
 } from './nativeSilentMode';
 
 // Notification IDs
@@ -132,8 +134,74 @@ export const schedulePrayerNotifications = async (prayers: Prayer[]): Promise<vo
       await LocalNotifications.schedule({ notifications });
       console.log(`📅 Scheduled ${notifications.length} notifications for prayer times (next 7 days)`);
     }
+
+    // Schedule native alarms for actual silent mode control (works even when app is closed)
+    if (isNativePlatform()) {
+      await scheduleNativeAlarms(prayers);
+    }
   } catch (error) {
     console.log('Failed to schedule notifications (running in web mode):', error);
+  }
+};
+
+/**
+ * Schedule native AlarmManager alarms for reliable background silent mode
+ */
+const scheduleNativeAlarms = async (prayers: Prayer[]): Promise<void> => {
+  try {
+    await cancelAllNativeAlarms();
+    
+    const now = new Date();
+    let alarmCount = 0;
+
+    for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
+      const targetDate = new Date(now);
+      targetDate.setDate(targetDate.getDate() + dayOffset);
+      const isFriday = targetDate.getDay() === 5;
+
+      const dayPrayers = prayers.filter(p => {
+        if (isFriday) return p.id !== 'zuhr';
+        return p.id !== 'friday';
+      });
+
+      for (let i = 0; i < dayPrayers.length; i++) {
+        const prayer = dayPrayers[i];
+        if (!prayer.silenceEnabled) continue;
+
+        const [hours, minutes] = prayer.time.split(':').map(Number);
+        
+        const startTime = new Date(targetDate);
+        startTime.setHours(hours, minutes, 0, 0);
+        if (startTime <= now) continue;
+
+        const endTime = new Date(startTime);
+        endTime.setMinutes(endTime.getMinutes() + prayer.silenceDuration);
+
+        const baseRequestCode = 5000 + (dayOffset * 100) + (i * 2);
+
+        // Alarm to enable silent mode
+        await scheduleNativeAlarm(
+          startTime.getTime(),
+          'app.lovable.salahsilent.ENABLE_SILENT',
+          prayer.name,
+          baseRequestCode
+        );
+
+        // Alarm to disable silent mode
+        await scheduleNativeAlarm(
+          endTime.getTime(),
+          'app.lovable.salahsilent.DISABLE_SILENT',
+          prayer.name,
+          baseRequestCode + 1
+        );
+
+        alarmCount += 2;
+      }
+    }
+
+    console.log(`⏰ Scheduled ${alarmCount} native alarms for background silent mode`);
+  } catch (error) {
+    console.log('Failed to schedule native alarms:', error);
   }
 };
 
