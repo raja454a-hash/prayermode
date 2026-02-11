@@ -10,6 +10,7 @@ import ScheduleEdit from "./pages/ScheduleEdit";
 import Subscription from "./pages/Subscription";
 import Settings from "./pages/Settings";
 import ContactSupport from "./pages/ContactSupport";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/subscription" element={<Subscription />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/contact" element={<ContactSupport />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
