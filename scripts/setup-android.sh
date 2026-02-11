@@ -63,13 +63,14 @@ if [ -n "$MAIN_ACTIVITY_FILE" ]; then
   # Add import for SilentModePlugin
   sed -i '/^import com.getcapacitor.BridgeActivity;/a import app.lovable.salahsilent.SilentModePlugin;' "$MAIN_ACTIVITY_FILE"
   
-  # Add onCreate method to register plugin
-  sed -i '/public class MainActivity extends BridgeActivity/a \
+  # Replace empty class body with onCreate method inside the class
+  sed -i 's/public class MainActivity extends BridgeActivity {}/public class MainActivity extends BridgeActivity {\
     @Override\
     public void onCreate(android.os.Bundle savedInstanceState) {\
         registerPlugin(SilentModePlugin.class);\
         super.onCreate(savedInstanceState);\
-    }' "$MAIN_ACTIVITY_FILE"
+    }\
+}/' "$MAIN_ACTIVITY_FILE"
   
   echo "✅ SilentModePlugin registered in: $MAIN_ACTIVITY_FILE"
 else
