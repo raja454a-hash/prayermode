@@ -177,7 +177,7 @@ const Settings = () => {
               <SettingRow
                 icon={<Mail className="h-5 w-5" />}
                 title="Contact Support"
-                onClick={() => toast({ title: 'Coming Soon', description: 'Support contact will be added.' })}
+                onClick={() => navigate('/contact')}
               />
             </CardContent>
           </Card>
