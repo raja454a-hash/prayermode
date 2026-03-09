@@ -1,52 +1,25 @@
 
 
-# Fix: Java Source Files Deleted During CI Build
+## Verification Result
 
-## Problem
-CI workflow mein `rm -rf android` command poora `android/` folder delete kar deta hai - jismein hamare custom Java files (SilentModePlugin, PrayerAlarmReceiver, BootReceiver) bhi hain. Phir `setup-android.sh` script inhi files ko usi (ab deleted) directory se copy karne ki koshish karta hai, jo silently fail ho jata hai (`|| true` ki wajah se). Isliye compiler ko `SilentModePlugin` class nahi milti.
+The GPS location code is correctly implemented — no console errors. In the preview iframe, the browser may block geolocation permissions, so it falls back to the cached localStorage value or "Your Location". On a real device or the published URL, it will detect the actual city.
 
-## Solution
-Java source files ko `android/` se bahar ek naye folder (`native-sources/android/`) mein move karna hai, taaki `rm -rf android` se delete na hon. Script ko update karenge taaki woh naye location se copy kare.
+## Plan: Add Refresh Location Button
 
-## Changes
+Add a small refresh icon button next to the location text in the header that re-triggers geolocation.
 
-### 1. Create `native-sources/android/` directory
-Move these 3 files from `android/app/src/main/java/app/lovable/salahsilent/` to `native-sources/android/`:
-- `SilentModePlugin.java`
-- `PrayerAlarmReceiver.java`
-- `BootReceiver.java`
+### Changes
 
-### 2. Update `scripts/setup-android.sh`
-Change the `SOURCE_DIR` variable and copy commands to use the new location:
+**1. `src/hooks/useGeolocation.ts`** — Extract the location fetch logic into a `refresh` function and expose it. Add a `refreshing` state separate from initial load.
 
-```bash
-# Change from:
-SOURCE_DIR="android/app/src/main/java/app/lovable/salahsilent"
+**2. `src/pages/Index.tsx`** — Add a `RefreshCw` icon button next to the location name that calls `refresh()`. Show a spin animation while refreshing.
 
-# Change to:
-SOURCE_DIR="native-sources/android"
+### UI Detail
+
+```text
+PrayerMode
+📍 Cairo [↻]     ← small refresh button, spins while loading
 ```
 
-Also remove the `2>/dev/null || true` so copy failures are caught instead of silently ignored.
+The button will be a ghost icon button (16x16) using `RefreshCw` from lucide-react, with `animate-spin` class applied during refresh.
 
-### 3. No changes needed to:
-- `.github/workflows/build-android.yml` (workflow stays the same)
-- Java file contents (no code changes needed)
-- AndroidManifest patching logic
-
-## Technical Details
-
-**Files to create:**
-- `native-sources/android/SilentModePlugin.java` (moved from android/)
-- `native-sources/android/PrayerAlarmReceiver.java` (moved from android/)
-- `native-sources/android/BootReceiver.java` (moved from android/)
-
-**Files to edit:**
-- `scripts/setup-android.sh` - line 10: update `SOURCE_DIR` path
-
-**Files to delete:**
-- `android/app/src/main/java/app/lovable/salahsilent/SilentModePlugin.java` (moved)
-- `android/app/src/main/java/app/lovable/salahsilent/PrayerAlarmReceiver.java` (moved)  
-- `android/app/src/main/java/app/lovable/salahsilent/BootReceiver.java` (moved)
-
-Yeh fix ke baad CI build mein Java files properly copy hongi aur `SilentModePlugin` class mil jayegi.
