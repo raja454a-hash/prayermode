@@ -84,6 +84,14 @@ const Index = () => {
             <div className="flex items-center gap-1 text-muted-foreground text-sm">
               <MapPin className="h-3 w-3" />
               <span>{locationLoading ? 'Locating...' : locationName}</span>
+              <button
+                onClick={refreshLocation}
+                disabled={locationLoading}
+                className="p-0.5 rounded-full hover:bg-muted transition-colors disabled:opacity-50"
+                aria-label="Refresh location"
+              >
+                <RefreshCw className={`h-3 w-3 ${locationLoading ? 'animate-spin' : ''}`} />
+              </button>
             </div>
           </div>
           <div className="flex items-center gap-2">

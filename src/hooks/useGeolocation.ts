@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 interface LocationInfo {
   city: string;
   loading: boolean;
   error: string | null;
+  refresh: () => void;
 }
 
 export const useGeolocation = (): LocationInfo => {
@@ -13,13 +14,14 @@ export const useGeolocation = (): LocationInfo => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchLocation = useCallback(() => {
     if (!navigator.geolocation) {
       setError('Geolocation not supported');
       return;
     }
 
     setLoading(true);
+    setError(null);
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
@@ -51,5 +53,9 @@ export const useGeolocation = (): LocationInfo => {
     );
   }, []);
 
-  return { city, loading, error };
+  useEffect(() => {
+    fetchLocation();
+  }, [fetchLocation]);
+
+  return { city, loading, error, refresh: fetchLocation };
 };
