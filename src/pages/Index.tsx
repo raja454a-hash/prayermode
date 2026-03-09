@@ -10,7 +10,7 @@ import { StatusHeader } from '@/components/StatusHeader';
 import { MosqueDecoration } from '@/components/MosqueDecoration';
 import { ManualSilentToggle } from '@/components/ManualSilentToggle';
 import { UserMenu } from '@/components/auth/UserMenu';
-import { MapPin, Settings, LogIn, Edit, Crown } from 'lucide-react';
+import { MapPin, Settings, LogIn, Edit, Crown, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const Index = () => {
