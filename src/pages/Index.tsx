@@ -4,6 +4,7 @@ import { usePrayerTimes } from '@/hooks/usePrayerTimes';
 import { useSilentModeService } from '@/hooks/useSilentModeService';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdMob } from '@/hooks/useAdMob';
+import { useGeolocation } from '@/hooks/useGeolocation';
 import { PrayerCard } from '@/components/PrayerCard';
 import { StatusHeader } from '@/components/StatusHeader';
 import { MosqueDecoration } from '@/components/MosqueDecoration';
