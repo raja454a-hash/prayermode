@@ -82,7 +82,7 @@ const Index = () => {
             </h1>
             <div className="flex items-center gap-1 text-muted-foreground text-sm">
               <MapPin className="h-3 w-3" />
-              <span>Your Location</span>
+              <span>{locationLoading ? 'Locating...' : locationName}</span>
             </div>
           </div>
           <div className="flex items-center gap-2">
