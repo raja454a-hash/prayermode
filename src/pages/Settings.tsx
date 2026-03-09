@@ -1,10 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import {
   ArrowLeft,
   User,
@@ -16,8 +15,12 @@ import {
   Mail,
   Shield,
   Info,
+  ShieldCheck,
+  MapPin,
+  VolumeX,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { checkDndPermission, requestDndPermission, isNativePlatform } from '@/services/nativeSilentMode';
 
 interface SettingRowProps {
   icon: React.ReactNode;
@@ -54,6 +57,28 @@ const Settings = () => {
   
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [darkMode, setDarkMode] = useState(true);
+  const [dndGranted, setDndGranted] = useState<boolean | null>(null);
+  const [isNative, setIsNative] = useState(false);
+
+  useEffect(() => {
+    const native = isNativePlatform();
+    setIsNative(native);
+    if (native) {
+      checkDndPermission().then(setDndGranted);
+    }
+  }, []);
+
+  const handleRequestDnd = async () => {
+    await requestDndPermission();
+    toast({
+      title: 'DND Settings Opened',
+      description: 'Please grant Do Not Disturb access to enable auto-silent mode.',
+    });
+    // Re-check after a delay (user returns from settings)
+    setTimeout(() => {
+      checkDndPermission().then(setDndGranted);
+    }, 3000);
+  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -84,6 +109,51 @@ const Settings = () => {
         </header>
 
         <div className="space-y-4">
+          {/* Permissions Section */}
+          <Card className="bg-card border-border overflow-hidden">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base text-foreground flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4" />
+                Permissions
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <SettingRow
+                icon={<VolumeX className="h-5 w-5" />}
+                title="Do Not Disturb"
+                description={
+                  isNative
+                    ? dndGranted === null
+                      ? 'Checking...'
+                      : dndGranted
+                        ? '✅ Granted — Auto silent mode active'
+                        : '❌ Not granted — Tap to enable'
+                    : 'Auto-managed on web'
+                }
+                action={
+                  isNative && !dndGranted ? (
+                    <Button size="sm" variant="outline" onClick={handleRequestDnd}>
+                      Enable
+                    </Button>
+                  ) : undefined
+                }
+                onClick={isNative && !dndGranted ? handleRequestDnd : undefined}
+              />
+              <div className="border-t border-border" />
+              <SettingRow
+                icon={<MapPin className="h-5 w-5" />}
+                title="Location Access"
+                description={
+                  isNative
+                    ? 'Required for accurate prayer times'
+                    : navigator.geolocation
+                      ? '✅ Available via browser'
+                      : '❌ Not supported'
+                }
+              />
+            </CardContent>
+          </Card>
+
           {/* Account Section */}
           <Card className="bg-card border-border overflow-hidden">
             <CardHeader className="pb-2">
