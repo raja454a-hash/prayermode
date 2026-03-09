@@ -10,7 +10,7 @@ import { StatusHeader } from '@/components/StatusHeader';
 import { MosqueDecoration } from '@/components/MosqueDecoration';
 import { ManualSilentToggle } from '@/components/ManualSilentToggle';
 import { UserMenu } from '@/components/auth/UserMenu';
-import { MapPin, Settings, LogIn, Edit, Crown } from 'lucide-react';
+import { MapPin, Settings, LogIn, Edit, Crown, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const Index = () => {
@@ -33,7 +33,7 @@ const Index = () => {
   } = usePrayerTimes();
 
   const isPremium = profile?.subscription_status === 'premium';
-  const { city: locationName, loading: locationLoading } = useGeolocation();
+  const { city: locationName, loading: locationLoading, refresh: refreshLocation } = useGeolocation();
 
   // Manage AdMob ads - hide for premium users and during prayer
   useAdMob({
@@ -84,6 +84,14 @@ const Index = () => {
             <div className="flex items-center gap-1 text-muted-foreground text-sm">
               <MapPin className="h-3 w-3" />
               <span>{locationLoading ? 'Locating...' : locationName}</span>
+              <button
+                onClick={refreshLocation}
+                disabled={locationLoading}
+                className="p-0.5 rounded-full hover:bg-muted transition-colors disabled:opacity-50"
+                aria-label="Refresh location"
+              >
+                <RefreshCw className={`h-3 w-3 ${locationLoading ? 'animate-spin' : ''}`} />
+              </button>
             </div>
           </div>
           <div className="flex items-center gap-2">
