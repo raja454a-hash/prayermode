@@ -11,12 +11,3 @@ export interface Prayer {
   reminderMinutes: number; // minutes before prayer
 }
 
-export interface PrayerSettings {
-  prayers: Prayer[];
-  location: {
-    latitude: number;
-    longitude: number;
-    city: string;
-  };
-  calculationMethod: string;
-}
