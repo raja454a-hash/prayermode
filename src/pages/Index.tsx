@@ -4,6 +4,7 @@ import { usePrayerTimes } from '@/hooks/usePrayerTimes';
 import { useSilentModeService } from '@/hooks/useSilentModeService';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdMob } from '@/hooks/useAdMob';
+import { useGeolocation } from '@/hooks/useGeolocation';
 import { PrayerCard } from '@/components/PrayerCard';
 import { StatusHeader } from '@/components/StatusHeader';
 import { MosqueDecoration } from '@/components/MosqueDecoration';
@@ -32,6 +33,7 @@ const Index = () => {
   } = usePrayerTimes();
 
   const isPremium = profile?.subscription_status === 'premium';
+  const { city: locationName, loading: locationLoading } = useGeolocation();
 
   // Manage AdMob ads - hide for premium users and during prayer
   useAdMob({
@@ -81,7 +83,7 @@ const Index = () => {
             </h1>
             <div className="flex items-center gap-1 text-muted-foreground text-sm">
               <MapPin className="h-3 w-3" />
-              <span>Your Location</span>
+              <span>{locationLoading ? 'Locating...' : locationName}</span>
             </div>
           </div>
           <div className="flex items-center gap-2">
