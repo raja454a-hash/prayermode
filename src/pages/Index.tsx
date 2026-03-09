@@ -32,6 +32,7 @@ const Index = () => {
   } = usePrayerTimes();
 
   const isPremium = profile?.subscription_status === 'premium';
+  const { city: locationName, loading: locationLoading } = useGeolocation();
 
   // Manage AdMob ads - hide for premium users and during prayer
   useAdMob({
