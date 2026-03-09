@@ -1,52 +1,32 @@
 
 
-# Fix: Java Source Files Deleted During CI Build
+## Plan: Add Auto Silent Mode Permissions + DND Permission UI
 
-## Problem
-CI workflow mein `rm -rf android` command poora `android/` folder delete kar deta hai - jismein hamare custom Java files (SilentModePlugin, PrayerAlarmReceiver, BootReceiver) bhi hain. Phir `setup-android.sh` script inhi files ko usi (ab deleted) directory se copy karne ki koshish karta hai, jo silently fail ho jata hai (`|| true` ki wajah se). Isliye compiler ko `SilentModePlugin` class nahi milti.
+The app already has the DND logic (`ACCESS_NOTIFICATION_POLICY`, `SilentModePlugin`, `PrayerAlarmReceiver`) and auto silent/restore logic in `silentModeService.ts`. Two things are missing:
 
-## Solution
-Java source files ko `android/` se bahar ek naye folder (`native-sources/android/`) mein move karna hai, taaki `rm -rf android` se delete na hon. Script ko update karenge taaki woh naye location se copy kare.
+1. **Location permissions** in AndroidManifest for GPS
+2. **A visible DND permission prompt** in Settings so users can easily grant DND access
 
-## Changes
+### Changes
 
-### 1. Create `native-sources/android/` directory
-Move these 3 files from `android/app/src/main/java/app/lovable/salahsilent/` to `native-sources/android/`:
-- `SilentModePlugin.java`
-- `PrayerAlarmReceiver.java`
-- `BootReceiver.java`
-
-### 2. Update `scripts/setup-android.sh`
-Change the `SOURCE_DIR` variable and copy commands to use the new location:
-
-```bash
-# Change from:
-SOURCE_DIR="android/app/src/main/java/app/lovable/salahsilent"
-
-# Change to:
-SOURCE_DIR="native-sources/android"
+**1. `android/app/src/main/AndroidManifest-additions.xml`**
+Add two location permissions:
+```xml
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 ```
 
-Also remove the `2>/dev/null || true` so copy failures are caught instead of silently ignored.
+**2. `src/pages/Settings.tsx`**
+Add a new "Permissions" card section with:
+- **DND Permission row** — shows current status (granted/not granted) with a button to open system DND settings via `requestDndPermission()` from `nativeSilentMode.ts`
+- **Location Permission row** — informational, showing if geolocation is available
+- On native platform, check DND permission on mount and display status
+- On web, show "Auto-managed" since DND doesn't apply
 
-### 3. No changes needed to:
-- `.github/workflows/build-android.yml` (workflow stays the same)
-- Java file contents (no code changes needed)
-- AndroidManifest patching logic
+This ensures users on Android can:
+- See if DND permission is granted
+- Tap to open system settings and grant it
+- Once granted, the existing AlarmManager + PrayerAlarmReceiver flow will automatically enable DND at prayer start and restore normal mode when prayer ends
 
-## Technical Details
+No changes needed to the silent mode service — it already handles enable/disable DND via `ENABLE_SILENT` and `DISABLE_SILENT` alarm actions.
 
-**Files to create:**
-- `native-sources/android/SilentModePlugin.java` (moved from android/)
-- `native-sources/android/PrayerAlarmReceiver.java` (moved from android/)
-- `native-sources/android/BootReceiver.java` (moved from android/)
-
-**Files to edit:**
-- `scripts/setup-android.sh` - line 10: update `SOURCE_DIR` path
-
-**Files to delete:**
-- `android/app/src/main/java/app/lovable/salahsilent/SilentModePlugin.java` (moved)
-- `android/app/src/main/java/app/lovable/salahsilent/PrayerAlarmReceiver.java` (moved)  
-- `android/app/src/main/java/app/lovable/salahsilent/BootReceiver.java` (moved)
-
-Yeh fix ke baad CI build mein Java files properly copy hongi aur `SilentModePlugin` class mil jayegi.
