@@ -104,6 +104,7 @@ const Subscription = () => {
     purchaseYearly,
     restore,
     refresh,
+    cancel,
   } = useSubscription(user?.id);
 
   // Update backend subscription via secure edge function
