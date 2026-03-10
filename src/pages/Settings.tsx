@@ -72,6 +72,21 @@ const Settings = () => {
     }
   }, []);
 
+  const handleToggleDarkMode = (enabled: boolean) => {
+    setDarkMode(enabled);
+    localStorage.setItem('prayermode_theme', enabled ? 'dark' : 'light');
+    if (enabled) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  };
+
+  const handleToggleNotifications = (enabled: boolean) => {
+    setNotificationsEnabled(enabled);
+    localStorage.setItem('prayermode_notifications', enabled ? 'true' : 'false');
+  };
+
   const handleRequestDnd = async () => {
     await requestDndPermission();
     toast({
