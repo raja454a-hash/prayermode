@@ -1,52 +1,40 @@
 
 
-# Fix: Java Source Files Deleted During CI Build
+## Subscription Cancel کرنا
 
-## Problem
-CI workflow mein `rm -rf android` command poora `android/` folder delete kar deta hai - jismein hamare custom Java files (SilentModePlugin, PrayerAlarmReceiver, BootReceiver) bhi hain. Phir `setup-android.sh` script inhi files ko usi (ab deleted) directory se copy karne ki koshish karta hai, jo silently fail ho jata hai (`|| true` ki wajah se). Isliye compiler ko `SilentModePlugin` class nahi milti.
+### کیا کریں گے
+Premium users کو "Cancel Subscription" کا آپشن دیں گے۔ Google Play subscriptions RevenueCat/Play Store سے manage ہوتی ہیں، اس لیے cancellation کا عمل Play Store کی subscription management page پر redirect کرے گا (یہ standard practice ہے — Google policy کے مطابق cancellation Play Store سے ہوتی ہے)۔ ساتھ ہی backend status بھی `free` پر update ہوگا۔
 
-## Solution
-Java source files ko `android/` se bahar ek naye folder (`native-sources/android/`) mein move karna hai, taaki `rm -rf android` se delete na hon. Script ko update karenge taaki woh naye location se copy kare.
+### Implementation
 
-## Changes
+**1. `Subscription.tsx` — Premium section میں Cancel button شامل کریں**
+- "You're Premium!" card میں ایک "Cancel Subscription" button شامل کریں
+- Cancel پر:
+  - Confirmation dialog دکھائیں (AlertDialog)
+  - User confirm کرے تو Google Play subscription management URL کھولیں (`https://play.google.com/store/account/subscriptions`)
+  - Backend status `free` پر update کریں via `verify-subscription` edge function
 
-### 1. Create `native-sources/android/` directory
-Move these 3 files from `android/app/src/main/java/app/lovable/salahsilent/` to `native-sources/android/`:
-- `SilentModePlugin.java`
-- `PrayerAlarmReceiver.java`
-- `BootReceiver.java`
+**2. `useSubscription.ts` — cancel function شامل کریں**
+- نیا `cancelSubscription()` function جو Play Store subscriptions page open کرے
+- Status refresh کرے cancel کے بعد
 
-### 2. Update `scripts/setup-android.sh`
-Change the `SOURCE_DIR` variable and copy commands to use the new location:
+### فائلیں
+| فائل | تبدیلی |
+|------|--------|
+| `src/pages/Subscription.tsx` | Cancel button + confirmation dialog شامل کریں |
+| `src/hooks/useSubscription.ts` | `cancel` function expose کریں |
 
-```bash
-# Change from:
-SOURCE_DIR="android/app/src/main/java/app/lovable/salahsilent"
-
-# Change to:
-SOURCE_DIR="native-sources/android"
+### Flow
+```text
+Premium User → Cancel Button → Confirmation Dialog → Yes
+  ↓
+Open Play Store Subscriptions Page (user cancels there)
+  ↓
+Backend status → 'free' via edge function
+  ↓
+Profile refresh → UI updates to show free plan
 ```
 
-Also remove the `2>/dev/null || true` so copy failures are caught instead of silently ignored.
+### Note
+Google Play policy کے مطابق actual cancellation صرف Play Store سے ہو سکتی ہے۔ App صرف redirect کر سکتی ہے اور backend status update کر سکتی ہے۔
 
-### 3. No changes needed to:
-- `.github/workflows/build-android.yml` (workflow stays the same)
-- Java file contents (no code changes needed)
-- AndroidManifest patching logic
-
-## Technical Details
-
-**Files to create:**
-- `native-sources/android/SilentModePlugin.java` (moved from android/)
-- `native-sources/android/PrayerAlarmReceiver.java` (moved from android/)
-- `native-sources/android/BootReceiver.java` (moved from android/)
-
-**Files to edit:**
-- `scripts/setup-android.sh` - line 10: update `SOURCE_DIR` path
-
-**Files to delete:**
-- `android/app/src/main/java/app/lovable/salahsilent/SilentModePlugin.java` (moved)
-- `android/app/src/main/java/app/lovable/salahsilent/PrayerAlarmReceiver.java` (moved)  
-- `android/app/src/main/java/app/lovable/salahsilent/BootReceiver.java` (moved)
-
-Yeh fix ke baad CI build mein Java files properly copy hongi aur `SilentModePlugin` class mil jayegi.
