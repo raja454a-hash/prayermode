@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 
 const Index = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   
   const { user, profile, loading: authLoading, signOut } = useAuth();
   
