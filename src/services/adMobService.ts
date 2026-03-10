@@ -101,6 +101,21 @@ export const removeBannerAd = async (): Promise<void> => {
 };
 
 /**
+ * Show Interstitial Ad (e.g. when navigating back from settings/schedule)
+ */
+export const showInterstitialAd = async (): Promise<void> => {
+  try {
+    await AdMob.prepareInterstitial({
+      adId: AD_UNIT_IDS.appOpen.android,
+    });
+    await AdMob.showInterstitial();
+    console.log('📢 Interstitial Ad shown');
+  } catch (error) {
+    console.log('📢 Failed to show Interstitial Ad (running in web mode):', error);
+  }
+};
+
+/**
  * Show App Open Ad (full screen ad on app launch/foreground)
  */
 export const showAppOpenAd = async (): Promise<void> => {

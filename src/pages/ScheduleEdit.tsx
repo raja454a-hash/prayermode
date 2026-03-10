@@ -71,7 +71,7 @@ const ScheduleEdit = () => {
     });
 
     setSaving(false);
-    navigate('/');
+    navigate('/', { state: { from: 'schedule' } });
   };
 
   return (
@@ -82,7 +82,7 @@ const ScheduleEdit = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/', { state: { from: 'schedule' } })}
             className="text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="h-5 w-5" />

@@ -1,41 +1,52 @@
 
 
-## Interstitial Ad — Settings/Schedule Edit سے واپسی پر
+# Fix: Java Source Files Deleted During CI Build
 
-### کیا کریں گے
-Settings (`/settings`) یا Schedule Edit (`/schedule`) سے واپس Home (`/`) پر آنے پر free users کو ایک full-screen interstitial ad دکھائیں گے۔
+## Problem
+CI workflow mein `rm -rf android` command poora `android/` folder delete kar deta hai - jismein hamare custom Java files (SilentModePlugin, PrayerAlarmReceiver, BootReceiver) bhi hain. Phir `setup-android.sh` script inhi files ko usi (ab deleted) directory se copy karne ki koshish karta hai, jo silently fail ho jata hai (`|| true` ki wajah se). Isliye compiler ko `SilentModePlugin` class nahi milti.
 
-### Implementation
+## Solution
+Java source files ko `android/` se bahar ek naye folder (`native-sources/android/`) mein move karna hai, taaki `rm -rf android` se delete na hon. Script ko update karenge taaki woh naye location se copy kare.
 
-**1. `adMobService.ts` — نیا interstitial ad function**
-- نیا Ad Unit ID شامل کریں (interstitial کے لیے — ابھی App Open والا ID استعمال ہوگا، یا نیا بنائیں)
-- `showInterstitialAd()` function بنائیں جو `prepareInterstitial` + `showInterstitial` call کرے
+## Changes
 
-**2. `Index.tsx` — navigation state detect کریں**
-- `useLocation()` سے `location.state` چیک کریں
-- اگر `state.from === 'settings'` یا `state.from === 'schedule'` ہو تو interstitial trigger کریں
-- صرف free users کے لیے (premium نہیں) اور silent mode نہ ہو
+### 1. Create `native-sources/android/` directory
+Move these 3 files from `android/app/src/main/java/app/lovable/salahsilent/` to `native-sources/android/`:
+- `SilentModePlugin.java`
+- `PrayerAlarmReceiver.java`
+- `BootReceiver.java`
 
-**3. `Settings.tsx` اور `ScheduleEdit.tsx` — back navigation میں state pass کریں**
-- `navigate('/')` کو `navigate('/', { state: { from: 'settings' } })` میں بدلیں
-- `ScheduleEdit` میں `navigate('/', { state: { from: 'schedule' } })` کریں
+### 2. Update `scripts/setup-android.sh`
+Change the `SOURCE_DIR` variable and copy commands to use the new location:
 
-### فائلیں
-| فائل | تبدیلی |
-|------|--------|
-| `src/services/adMobService.ts` | `showInterstitialAd()` function شامل کریں |
-| `src/pages/Index.tsx` | `useLocation` سے واپسی detect کر کے interstitial trigger |
-| `src/pages/Settings.tsx` | Back button میں `state: { from: 'settings' }` |
-| `src/pages/ScheduleEdit.tsx` | Back button اور Save میں `state: { from: 'schedule' }` |
+```bash
+# Change from:
+SOURCE_DIR="android/app/src/main/java/app/lovable/salahsilent"
 
-### Flow
-```text
-Settings/Schedule → navigate('/', {state: {from: 'settings'}}) → Index
-  ↓
-Index useEffect detects state.from
-  ↓
-if (!isPremium && !isSilentMode) → showInterstitialAd()
-  ↓
-Clear state to prevent re-trigger
+# Change to:
+SOURCE_DIR="native-sources/android"
 ```
 
+Also remove the `2>/dev/null || true` so copy failures are caught instead of silently ignored.
+
+### 3. No changes needed to:
+- `.github/workflows/build-android.yml` (workflow stays the same)
+- Java file contents (no code changes needed)
+- AndroidManifest patching logic
+
+## Technical Details
+
+**Files to create:**
+- `native-sources/android/SilentModePlugin.java` (moved from android/)
+- `native-sources/android/PrayerAlarmReceiver.java` (moved from android/)
+- `native-sources/android/BootReceiver.java` (moved from android/)
+
+**Files to edit:**
+- `scripts/setup-android.sh` - line 10: update `SOURCE_DIR` path
+
+**Files to delete:**
+- `android/app/src/main/java/app/lovable/salahsilent/SilentModePlugin.java` (moved)
+- `android/app/src/main/java/app/lovable/salahsilent/PrayerAlarmReceiver.java` (moved)  
+- `android/app/src/main/java/app/lovable/salahsilent/BootReceiver.java` (moved)
+
+Yeh fix ke baad CI build mein Java files properly copy hongi aur `SilentModePlugin` class mil jayegi.

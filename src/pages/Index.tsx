@@ -1,9 +1,10 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { usePrayerTimes } from '@/hooks/usePrayerTimes';
 import { useSilentModeService } from '@/hooks/useSilentModeService';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdMob } from '@/hooks/useAdMob';
+import { showInterstitialAd } from '@/services/adMobService';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { PrayerCard } from '@/components/PrayerCard';
 import { StatusHeader } from '@/components/StatusHeader';
@@ -15,6 +16,7 @@ import { Button } from '@/components/ui/button';
 
 const Index = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   
   const { user, profile, loading: authLoading, signOut } = useAuth();
   
@@ -49,6 +51,16 @@ const Index = () => {
   }, [profile]);
 
   // Initialize silent mode service for native notifications
+  // Show interstitial ad when returning from settings/schedule (free users only)
+  useEffect(() => {
+    const from = location.state?.from;
+    if ((from === 'settings' || from === 'schedule') && !isPremium && !isSilentMode) {
+      showInterstitialAd();
+      // Clear state to prevent re-trigger
+      window.history.replaceState({}, '');
+    }
+  }, [location.state]);
+
   useSilentModeService(prayers);
 
   const timeUntilNext = getTimeUntilNextPrayer();
