@@ -4,10 +4,21 @@ import { useAuth } from '@/hooks/useAuth';
 import { useSubscription } from '@/hooks/useSubscription';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ArrowLeft, Check, Crown, Sparkles, Loader2, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Check, Crown, Sparkles, Loader2, RefreshCw, XCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface PlanProps {
   name: string;
@@ -93,6 +104,7 @@ const Subscription = () => {
     purchaseYearly,
     restore,
     refresh,
+    cancel,
   } = useSubscription(user?.id);
 
   // Update backend subscription via secure edge function
@@ -217,14 +229,53 @@ const Subscription = () => {
               <p className="text-muted-foreground mb-4">
                 Thank you for supporting Prayer Mode. Enjoy your ad-free experience.
               </p>
-              <Button
-                variant="outline"
-                onClick={refresh}
-                className="text-muted-foreground"
-              >
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Refresh Status
-              </Button>
+              <div className="flex flex-col gap-3">
+                <Button
+                  variant="outline"
+                  onClick={refresh}
+                  className="text-muted-foreground"
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Refresh Status
+                </Button>
+
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                    >
+                      <XCircle className="h-4 w-4 mr-2" />
+                      Cancel Subscription
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent className="bg-background border-border">
+                    <AlertDialogHeader>
+                      <AlertDialogTitle className="text-foreground">Cancel Subscription?</AlertDialogTitle>
+                      <AlertDialogDescription className="text-muted-foreground">
+                        You will be redirected to Google Play Store to manage your subscription. 
+                        After cancelling there, your premium benefits will remain active until the end of your billing period.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel className="bg-muted text-foreground">Keep Premium</AlertDialogCancel>
+                      <AlertDialogAction
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        onClick={async () => {
+                          cancel();
+                          await updateBackendSubscription('free');
+                          toast({
+                            title: 'Subscription Cancellation',
+                            description: 'You have been redirected to Google Play to complete cancellation.',
+                          });
+                        }}
+                      >
+                        Cancel Subscription
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
             </CardContent>
           </Card>
         ) : (
