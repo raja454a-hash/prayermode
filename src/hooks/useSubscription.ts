@@ -136,6 +136,11 @@ export const useSubscription = (userId?: string): UseSubscriptionReturn => {
     setIsLoading(false);
   }, []);
 
+  // Cancel — redirect to Play Store subscription management
+  const cancel = useCallback(() => {
+    window.open('https://play.google.com/store/account/subscriptions', '_blank');
+  }, []);
+
   return {
     isLoading,
     isPremium,
@@ -146,5 +151,6 @@ export const useSubscription = (userId?: string): UseSubscriptionReturn => {
     purchaseYearly,
     restore,
     refresh,
+    cancel,
   };
 };
