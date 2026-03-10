@@ -12,11 +12,6 @@ interface Profile {
   updated_at: string;
 }
 
-const parseSubscriptionStatus = (status: string): 'free' | 'premium' | 'trial' => {
-  if (status === 'premium' || status === 'trial') return status;
-  return 'free';
-};
-
 const parsePrayerSchedule = (schedule: Json): Prayer[] => {
   if (!Array.isArray(schedule)) return [];
   return schedule.map((item) => {
