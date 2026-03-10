@@ -8,7 +8,6 @@ interface Profile {
   id: string;
   user_id: string;
   prayer_schedule: Prayer[];
-  subscription_status: 'free' | 'premium' | 'trial';
   created_at: string;
   updated_at: string;
 }
