@@ -49,7 +49,7 @@ const PrivacyPolicy = () => {
                 <li>Email address (for account creation)</li>
                 <li>Prayer schedule preferences</li>
                 <li>Device information for silent mode functionality</li>
-                <li>Subscription and payment information</li>
+                
               </ul>
             </CardContent>
           </Card>
