@@ -23,6 +23,7 @@ interface UseSubscriptionReturn {
   purchaseYearly: () => Promise<boolean>;
   restore: () => Promise<boolean>;
   refresh: () => Promise<void>;
+  cancel: () => void;
 }
 
 export const useSubscription = (userId?: string): UseSubscriptionReturn => {
