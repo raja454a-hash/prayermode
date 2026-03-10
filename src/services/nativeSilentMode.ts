@@ -70,18 +70,6 @@ export const requestDndPermission = async (): Promise<void> => {
   }
 };
 
-/**
- * Get current silent mode status
- */
-export const getSilentModeStatus = async (): Promise<{ isSilent: boolean; mode: string }> => {
-  try {
-    const result = await SilentMode.getSilentModeStatus();
-    return result;
-  } catch (error) {
-    console.log('Failed to get silent mode status (web fallback):', error);
-    return { isSilent: false, mode: 'unknown' };
-  }
-};
 
 /**
  * Schedule a native alarm via AlarmManager
