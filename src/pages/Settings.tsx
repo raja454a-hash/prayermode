@@ -55,8 +55,12 @@ const Settings = () => {
   const { toast } = useToast();
   const { user, profile, signOut } = useAuth();
   
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [darkMode, setDarkMode] = useState(true);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(() => {
+    return localStorage.getItem('prayermode_notifications') !== 'false';
+  });
+  const [darkMode, setDarkMode] = useState(() => {
+    return document.documentElement.classList.contains('dark') || localStorage.getItem('prayermode_theme') !== 'light';
+  });
   const [dndGranted, setDndGranted] = useState<boolean | null>(null);
   const [isNative, setIsNative] = useState(false);
 
