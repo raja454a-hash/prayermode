@@ -95,15 +95,14 @@ const Subscription = () => {
     refresh,
   } = useSubscription(user?.id);
 
-  // Update backend when subscription changes
+  // Update backend subscription via secure edge function
   const updateBackendSubscription = async (status: 'premium' | 'free') => {
     if (!user) return;
 
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ subscription_status: status })
-        .eq('user_id', user.id);
+      const { data, error } = await supabase.functions.invoke('verify-subscription', {
+        body: { action: status === 'premium' ? 'activate' : 'deactivate' },
+      });
 
       if (error) throw error;
 
