@@ -9,7 +9,7 @@ import Index from "./pages/Index";
 const Login = lazy(() => import("./pages/Login"));
 const Signup = lazy(() => import("./pages/Signup"));
 const ScheduleEdit = lazy(() => import("./pages/ScheduleEdit"));
-const Subscription = lazy(() => import("./pages/Subscription"));
+
 const Settings = lazy(() => import("./pages/Settings"));
 const ContactSupport = lazy(() => import("./pages/ContactSupport"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
