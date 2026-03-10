@@ -63,7 +63,7 @@ const PrivacyPolicy = () => {
               <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
                 <li>Provide and maintain the app's functionality</li>
                 <li>Manage your prayer schedules and silent mode</li>
-                <li>Process subscriptions and payments</li>
+                
                 <li>Send important notifications about prayer times</li>
                 <li>Improve our services and user experience</li>
               </ul>
