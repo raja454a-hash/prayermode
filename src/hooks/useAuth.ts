@@ -57,7 +57,6 @@ export const useAuth = () => {
           id: data.id,
           user_id: data.user_id,
           prayer_schedule: parsePrayerSchedule(data.prayer_schedule),
-          subscription_status: parseSubscriptionStatus(data.subscription_status),
           created_at: data.created_at,
           updated_at: data.updated_at,
         };
