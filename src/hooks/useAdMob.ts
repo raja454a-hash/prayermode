@@ -73,10 +73,5 @@ export const useAdMob = ({ isPremium, isSilentMode }: UseAdMobOptions) => {
     }
   }, [shouldShowAds, isPremium, isSilentMode]);
 
-  return {
-    shouldShowAds,
-    showBannerAd,
-    hideBannerAd,
-    showAppOpenAd,
-  };
+  return { shouldShowAds };
 };

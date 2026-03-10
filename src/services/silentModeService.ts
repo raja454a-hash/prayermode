@@ -16,8 +16,6 @@ const SILENT_START_OFFSET = 0;
 const SILENT_END_OFFSET = 100;
 const REMINDER_OFFSET = 200;
 
-// Store previous ringer mode for restoration
-let previousMode: string | null = null;
 
 /**
  * Request permission for local notifications

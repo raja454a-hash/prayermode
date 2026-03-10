@@ -238,7 +238,7 @@ const Settings = () => {
                 action={
                   <Switch
                     checked={darkMode}
-                    onCheckedChange={setDarkMode}
+                    onCheckedChange={handleToggleDarkMode}
                   />
                 }
               />

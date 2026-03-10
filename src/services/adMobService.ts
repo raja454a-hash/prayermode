@@ -101,13 +101,6 @@ export const removeBannerAd = async (): Promise<void> => {
 };
 
 /**
- * Check if banner is currently visible
- */
-export const isBannerAdVisible = (): boolean => {
-  return isBannerVisible;
-};
-
-/**
  * Show App Open Ad (full screen ad on app launch/foreground)
  */
 export const showAppOpenAd = async (): Promise<void> => {
