@@ -88,8 +88,7 @@ const PrivacyPolicy = () => {
             <CardContent className="space-y-2">
               <p className="text-sm text-muted-foreground leading-relaxed">We use the following third-party services:</p>
               <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                <li><span className="text-foreground">Google AdMob</span> — to display ads for free users</li>
-                <li><span className="text-foreground">RevenueCat</span> — to manage subscriptions</li>
+                <li><span className="text-foreground">Google AdMob</span> — to display ads</li>
               </ul>
               <p className="text-sm text-muted-foreground leading-relaxed mt-2">
                 These services may collect data as described in their own privacy policies.
