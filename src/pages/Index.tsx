@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { usePrayerTimes } from '@/hooks/usePrayerTimes';
 import { useSilentModeService } from '@/hooks/useSilentModeService';
 import { useAuth } from '@/hooks/useAuth';

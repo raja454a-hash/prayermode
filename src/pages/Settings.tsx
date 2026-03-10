@@ -116,7 +116,7 @@ const Settings = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/', { state: { from: 'settings' } })}
             className="text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="h-5 w-5" />
