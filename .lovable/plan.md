@@ -1,87 +1,52 @@
 
 
-## Code Audit Plan — Dead Code, Duplicates & Cleanup
+# Fix: Java Source Files Deleted During CI Build
 
-میں نے پورے پروجیکٹ کا تفصیلی آڈٹ کیا ہے۔ نیچے تمام مسائل اور ان کے حل ہیں:
+## Problem
+CI workflow mein `rm -rf android` command poora `android/` folder delete kar deta hai - jismein hamare custom Java files (SilentModePlugin, PrayerAlarmReceiver, BootReceiver) bhi hain. Phir `setup-android.sh` script inhi files ko usi (ab deleted) directory se copy karne ki koshish karta hai, jo silently fail ho jata hai (`|| true` ki wajah se). Isliye compiler ko `SilentModePlugin` class nahi milti.
 
----
+## Solution
+Java source files ko `android/` se bahar ek naye folder (`native-sources/android/`) mein move karna hai, taaki `rm -rf android` se delete na hon. Script ko update karenge taaki woh naye location se copy kare.
 
-### 1. Dead Code (غیر استعمال شدہ کوڈ)
+## Changes
 
-| # | مسئلہ | فائل | تفصیل |
-|---|-------|------|--------|
-| 1 | `previousMode` variable | `silentModeService.ts:20` | Declare ہوا لیکن کہیں استعمال نہیں ہوا |
-| 2 | `isBannerAdVisible()` function | `adMobService.ts:106` | Export ہے لیکن کہیں import/call نہیں ہوا |
-| 3 | `silentModeEndTime` in return | `usePrayerTimes.ts:207` | Return ہو رہا ہے لیکن کوئی consumer استعمال نہیں کر رہا |
-| 4 | `useAdMob` return values | `useAdMob.ts:76-81` | `shouldShowAds`, `showBannerAd`, `hideBannerAd`, `showAppOpenAd` return ہوتے ہیں لیکن `Index.tsx` میں ان کو destructure نہیں کیا گیا |
-| 5 | `payment_transactions` table | Database | Table بنائی گئی لیکن کوڈ میں کہیں استعمال نہیں ہو رہی |
-| 6 | Dual toast system | `use-toast.ts` + `sonner` | دو toast systems (`Toaster` + `Sonner`) App.tsx میں load ہو رہے ہیں لیکن صرف `useToast` استعمال ہو رہا ہے، Sonner کہیں call نہیں ہوا |
+### 1. Create `native-sources/android/` directory
+Move these 3 files from `android/app/src/main/java/app/lovable/salahsilent/` to `native-sources/android/`:
+- `SilentModePlugin.java`
+- `PrayerAlarmReceiver.java`
+- `BootReceiver.java`
 
-### 2. Branding Inconsistency (نام کی بے ترتیبی)
+### 2. Update `scripts/setup-android.sh`
+Change the `SOURCE_DIR` variable and copy commands to use the new location:
 
-| # | جگہ | نام استعمال ہوا |
-|---|------|----------------|
-| 1 | `Index.tsx` header | "PrayerMode" |
-| 2 | `Login.tsx` header | "SalahSilent" |
-| 3 | `Signup.tsx` header | "Prayer Mode" |
-| 4 | Native package name | `app.lovable.salahsilent` |
-| 5 | `capacitor.config.ts` | Needs checking |
+```bash
+# Change from:
+SOURCE_DIR="android/app/src/main/java/app/lovable/salahsilent"
 
-**Fix**: سب جگہ ایک نام "Prayer Mode" یا "PrayerMode" رکھنا چاہیے۔
-
-### 3. Settings Page Issues (غیر فعال سوئچز)
-
-| # | مسئلہ | تفصیل |
-|---|-------|--------|
-| 1 | Dark Mode toggle | `useState(true)` ہے لیکن `next-themes` یا کسی اور theme system سے connected نہیں — toggle کا اثر صفر |
-| 2 | Notifications toggle | `useState(true)` ہے لیکن کسی logic سے connected نہیں |
-
-### 4. Contact Form — Fake Submit
-
-`ContactSupport.tsx:37` — فارم submit ہونے پر صرف `setTimeout` سے 1.5 سیکنڈ بعد success دکھاتا ہے۔ اصل میں کوئی email نہیں جاتا۔
-
-### 5. Unused UI Components
-
-`src/components/ui/` فولڈر میں ~40 shadcn components ہیں۔ اصل میں صرف ~12 استعمال ہو رہے ہیں:
-- **استعمال شدہ**: button, card, switch, input, label, textarea, toast, toaster, dropdown-menu, badge, tooltip, select, sonner, dialog, progress
-- **غیر استعمال شدہ**: accordion, alert-dialog, alert, aspect-ratio, avatar, breadcrumb, calendar, carousel, chart, checkbox, collapsible, command, context-menu, drawer, form, hover-card, input-otp, menubar, navigation-menu, pagination, popover, radio-group, resizable, scroll-area, separator, sheet, sidebar, skeleton, slider, table, tabs, toggle, toggle-group
-
-> Note: غیر استعمال shadcn UI components کو رکھنا عام practice ہے کیونکہ مستقبل میں کام آ سکتے ہیں اور tree-shaking انہیں production build سے نکال دیتا ہے۔ لیکن اگر آپ چاہیں تو ہٹا سکتے ہیں۔
-
----
-
-### Cleanup Plan (صفائی کا منصوبہ)
-
-**Step 1 — Dead code removal:**
-- `silentModeService.ts` سے `previousMode` variable ہٹانا
-- `adMobService.ts` سے `isBannerAdVisible()` ہٹانا
-- `usePrayerTimes.ts` سے `silentModeEndTime` return سے ہٹانا
-- `useAdMob.ts` — return object خالی کرنا (صرف side-effects hook ہے)
-- `App.tsx` سے `Sonner` component ہٹانا (استعمال نہیں ہو رہا)
-
-**Step 2 — Branding fix:**
-- `Login.tsx` میں "SalahSilent" کو "PrayerMode" میں تبدیل کرنا
-
-**Step 3 — Settings toggles:**
-- Dark Mode toggle کو `next-themes` سے connect کرنا یا ہٹانا
-- Notifications toggle کو actual notification permission سے connect کرنا یا ہٹانا
-
-**Step 4 — Contact form:**
-- فارم کو edge function سے connect کرنا تاکہ اصل میں message محفوظ ہو، یا placeholder comment لگانا
-
----
-
-### خلاصہ
-
-```text
-Dead variables/functions:     3
-Unused exports:               2  
-Branding inconsistency:       3 جگہ
-Non-functional UI toggles:    2
-Fake form submission:         1
-Unused Sonner toast system:   1
-Unused DB table:              1 (payment_transactions)
+# Change to:
+SOURCE_DIR="native-sources/android"
 ```
 
-کوئی critical bug یا compile error نہیں ہے۔ سب issues cleanup اور consistency سے متعلق ہیں۔ کیا آپ اس plan کے مطابق صفائی شروع کروں؟
+Also remove the `2>/dev/null || true` so copy failures are caught instead of silently ignored.
 
+### 3. No changes needed to:
+- `.github/workflows/build-android.yml` (workflow stays the same)
+- Java file contents (no code changes needed)
+- AndroidManifest patching logic
+
+## Technical Details
+
+**Files to create:**
+- `native-sources/android/SilentModePlugin.java` (moved from android/)
+- `native-sources/android/PrayerAlarmReceiver.java` (moved from android/)
+- `native-sources/android/BootReceiver.java` (moved from android/)
+
+**Files to edit:**
+- `scripts/setup-android.sh` - line 10: update `SOURCE_DIR` path
+
+**Files to delete:**
+- `android/app/src/main/java/app/lovable/salahsilent/SilentModePlugin.java` (moved)
+- `android/app/src/main/java/app/lovable/salahsilent/PrayerAlarmReceiver.java` (moved)  
+- `android/app/src/main/java/app/lovable/salahsilent/BootReceiver.java` (moved)
+
+Yeh fix ke baad CI build mein Java files properly copy hongi aur `SilentModePlugin` class mil jayegi.

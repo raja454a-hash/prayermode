@@ -203,7 +203,6 @@ export const usePrayerTimes = () => {
     nextPrayer,
     isSilentMode: isSilentMode || isManualSilent,
     isManualSilent,
-    silentModeEndTime,
     toggleSilenceForPrayer,
     toggleManualSilent,
     updatePrayers,

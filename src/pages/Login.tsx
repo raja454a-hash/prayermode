@@ -129,8 +129,8 @@ const Login = () => {
         <Card className="w-full max-w-md bg-card border-border">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl">
-              <span className="text-foreground">Salah</span>
-              <span className="text-gradient-gold">Silent</span>
+              <span className="text-foreground">Prayer</span>
+              <span className="text-gradient-gold">Mode</span>
             </CardTitle>
             <CardDescription className="text-muted-foreground">
               Sign in to sync your prayer settings

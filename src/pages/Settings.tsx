@@ -55,8 +55,12 @@ const Settings = () => {
   const { toast } = useToast();
   const { user, profile, signOut } = useAuth();
   
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [darkMode, setDarkMode] = useState(true);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(() => {
+    return localStorage.getItem('prayermode_notifications') !== 'false';
+  });
+  const [darkMode, setDarkMode] = useState(() => {
+    return document.documentElement.classList.contains('dark') || localStorage.getItem('prayermode_theme') !== 'light';
+  });
   const [dndGranted, setDndGranted] = useState<boolean | null>(null);
   const [isNative, setIsNative] = useState(false);
 
@@ -67,6 +71,21 @@ const Settings = () => {
       checkDndPermission().then(setDndGranted);
     }
   }, []);
+
+  const handleToggleDarkMode = (enabled: boolean) => {
+    setDarkMode(enabled);
+    localStorage.setItem('prayermode_theme', enabled ? 'dark' : 'light');
+    if (enabled) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  };
+
+  const handleToggleNotifications = (enabled: boolean) => {
+    setNotificationsEnabled(enabled);
+    localStorage.setItem('prayermode_notifications', enabled ? 'true' : 'false');
+  };
 
   const handleRequestDnd = async () => {
     await requestDndPermission();
@@ -199,7 +218,7 @@ const Settings = () => {
                 action={
                   <Switch
                     checked={notificationsEnabled}
-                    onCheckedChange={setNotificationsEnabled}
+                    onCheckedChange={handleToggleNotifications}
                   />
                 }
               />
@@ -219,7 +238,7 @@ const Settings = () => {
                 action={
                   <Switch
                     checked={darkMode}
-                    onCheckedChange={setDarkMode}
+                    onCheckedChange={handleToggleDarkMode}
                   />
                 }
               />

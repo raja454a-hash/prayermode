@@ -33,7 +33,7 @@ const ContactSupport = () => {
     }
 
     setLoading(true);
-    // Simulate sending (can be replaced with actual API call later)
+    // TODO: Connect to backend edge function to save/send support messages
     await new Promise((resolve) => setTimeout(resolve, 1500));
     setLoading(false);
 
