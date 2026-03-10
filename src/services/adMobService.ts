@@ -6,6 +6,10 @@ const AD_UNIT_IDS = {
     android: 'ca-app-pub-6289432096637084/1857073079',
     ios: 'ca-app-pub-6289432096637084/1857073079',
   },
+  interstitial: {
+    android: 'ca-app-pub-6289432096637084/4350406874',
+    ios: 'ca-app-pub-6289432096637084/4350406874',
+  },
   appOpen: {
     android: 'ca-app-pub-6289432096637084/1585610337',
     ios: 'ca-app-pub-6289432096637084/1585610337',
