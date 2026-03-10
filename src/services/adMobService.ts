@@ -1,6 +1,10 @@
-import { AdMob, BannerAdOptions, BannerAdSize, BannerAdPosition, BannerAdPluginEvents } from '@capacitor-community/admob';
+// AdMob service - dynamically imports @capacitor-community/admob only on native platforms
+// This prevents the web preview from crashing when the native plugin isn't available.
 
-// Test Ad Unit IDs (replace with real IDs in production)
+let AdMobModule: any = null;
+let isInitialized = false;
+let isBannerVisible = false;
+
 const AD_UNIT_IDS = {
   banner: {
     android: 'ca-app-pub-6289432096637084/1857073079',
@@ -16,32 +20,36 @@ const AD_UNIT_IDS = {
   },
 };
 
-let isInitialized = false;
-let isBannerVisible = false;
+const getAdMob = async () => {
+  if (AdMobModule) return AdMobModule;
+  try {
+    AdMobModule = await import('@capacitor-community/admob');
+    return AdMobModule;
+  } catch (error) {
+    console.log('📢 AdMob not available (web mode):', error);
+    return null;
+  }
+};
 
-/**
- * Initialize AdMob
- */
 export const initializeAdMob = async (): Promise<boolean> => {
   if (isInitialized) return true;
 
-  try {
-    await AdMob.initialize();
+  const mod = await getAdMob();
+  if (!mod) return false;
 
-    // Set up event listeners
-    AdMob.addListener(BannerAdPluginEvents.Loaded, () => {
+  try {
+    await mod.AdMob.initialize();
+
+    mod.AdMob.addListener(mod.BannerAdPluginEvents.Loaded, () => {
       console.log('📢 AdMob Banner loaded');
     });
-
-    AdMob.addListener(BannerAdPluginEvents.FailedToLoad, (error) => {
+    mod.AdMob.addListener(mod.BannerAdPluginEvents.FailedToLoad, (error: any) => {
       console.log('📢 AdMob Banner failed to load:', error);
     });
-
-    AdMob.addListener(BannerAdPluginEvents.Opened, () => {
+    mod.AdMob.addListener(mod.BannerAdPluginEvents.Opened, () => {
       console.log('📢 AdMob Banner opened');
     });
-
-    AdMob.addListener(BannerAdPluginEvents.Closed, () => {
+    mod.AdMob.addListener(mod.BannerAdPluginEvents.Closed, () => {
       console.log('📢 AdMob Banner closed');
     });
 
@@ -49,88 +57,83 @@ export const initializeAdMob = async (): Promise<boolean> => {
     console.log('📢 AdMob initialized successfully');
     return true;
   } catch (error) {
-    console.log('📢 AdMob initialization failed (running in web mode):', error);
+    console.log('📢 AdMob initialization failed:', error);
     return false;
   }
 };
 
-/**
- * Show banner ad at the bottom of the screen
- */
 export const showBannerAd = async (): Promise<void> => {
   if (isBannerVisible) return;
+  const mod = await getAdMob();
+  if (!mod) return;
 
   try {
-    const options: BannerAdOptions = {
+    await mod.AdMob.showBanner({
       adId: AD_UNIT_IDS.banner.android,
-      adSize: BannerAdSize.ADAPTIVE_BANNER,
-      position: BannerAdPosition.BOTTOM_CENTER,
+      adSize: mod.BannerAdSize.ADAPTIVE_BANNER,
+      position: mod.BannerAdPosition.BOTTOM_CENTER,
       margin: 0,
-    };
-
-    await AdMob.showBanner(options);
+    });
     isBannerVisible = true;
     console.log('📢 Banner ad shown');
   } catch (error) {
-    console.log('📢 Failed to show banner ad (running in web mode):', error);
+    console.log('📢 Failed to show banner ad:', error);
   }
 };
 
-/**
- * Hide banner ad
- */
 export const hideBannerAd = async (): Promise<void> => {
   if (!isBannerVisible) return;
+  const mod = await getAdMob();
+  if (!mod) return;
 
   try {
-    await AdMob.hideBanner();
+    await mod.AdMob.hideBanner();
     isBannerVisible = false;
     console.log('📢 Banner ad hidden');
   } catch (error) {
-    console.log('📢 Failed to hide banner ad (running in web mode):', error);
+    console.log('📢 Failed to hide banner ad:', error);
   }
 };
 
-/**
- * Remove banner ad completely
- */
 export const removeBannerAd = async (): Promise<void> => {
+  const mod = await getAdMob();
+  if (!mod) return;
+
   try {
-    await AdMob.removeBanner();
+    await mod.AdMob.removeBanner();
     isBannerVisible = false;
     console.log('📢 Banner ad removed');
   } catch (error) {
-    console.log('📢 Failed to remove banner ad (running in web mode):', error);
+    console.log('📢 Failed to remove banner ad:', error);
   }
 };
 
-/**
- * Show Interstitial Ad (e.g. when navigating back from settings/schedule)
- */
 export const showInterstitialAd = async (): Promise<void> => {
+  const mod = await getAdMob();
+  if (!mod) return;
+
   try {
-    await AdMob.prepareInterstitial({
+    await mod.AdMob.prepareInterstitial({
       adId: AD_UNIT_IDS.interstitial.android,
     });
-    await AdMob.showInterstitial();
+    await mod.AdMob.showInterstitial();
     console.log('📢 Interstitial Ad shown');
   } catch (error) {
-    console.log('📢 Failed to show Interstitial Ad (running in web mode):', error);
+    console.log('📢 Failed to show Interstitial Ad:', error);
   }
 };
 
-/**
- * Show App Open Ad (full screen ad on app launch/foreground)
- */
 export const showAppOpenAd = async (): Promise<void> => {
+  const mod = await getAdMob();
+  if (!mod) return;
+
   try {
-    await AdMob.prepareInterstitial({
+    await mod.AdMob.prepareInterstitial({
       adId: AD_UNIT_IDS.appOpen.android,
     });
-    console.log('📢 App Open Ad prepared, now showing...');
-    await AdMob.showInterstitial();
+    await mod.AdMob.showInterstitial();
     console.log('📢 App Open Ad shown');
   } catch (error) {
-    console.log('📢 Failed to show App Open Ad (running in web mode):', error);
+    console.log('📢 Failed to show App Open Ad:', error);
   }
 };
