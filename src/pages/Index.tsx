@@ -103,16 +103,6 @@ const Index = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {!isPremium && user && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate('/subscription')}
-                className="text-secondary hover:text-secondary hover:bg-secondary/10"
-              >
-                <Crown className="h-5 w-5" />
-              </Button>
-            )}
             <Button
               variant="ghost"
               size="icon"
