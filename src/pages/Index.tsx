@@ -50,7 +50,7 @@ const Index = () => {
   // Show interstitial ad when returning from settings/schedule (free users only)
   useEffect(() => {
     const from = location.state?.from;
-    if ((from === 'settings' || from === 'schedule') && !isPremium && !isSilentMode) {
+    if ((from === 'settings' || from === 'schedule') && !isSilentMode) {
       showInterstitialAd();
       // Clear state to prevent re-trigger
       window.history.replaceState({}, '');
