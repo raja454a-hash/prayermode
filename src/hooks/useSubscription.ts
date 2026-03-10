@@ -10,9 +10,8 @@ import {
   logOutUser,
 } from '@/services/purchaseService';
 
-// RevenueCat API Key - Replace with your actual key
-// For production: Store this securely or use environment variables
-const REVENUECAT_API_KEY = 'your_revenuecat_api_key_here';
+// RevenueCat API Key - loaded from environment variable
+const REVENUECAT_API_KEY = import.meta.env.VITE_REVENUECAT_API_KEY || '';
 
 interface UseSubscriptionReturn {
   isLoading: boolean;

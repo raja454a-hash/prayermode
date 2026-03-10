@@ -23,7 +23,7 @@ export const initializePurchases = async (
   if (isInitialized) return true;
 
   try {
-    await Purchases.setLogLevel({ level: LOG_LEVEL.DEBUG }); // Set to WARN for production
+    await Purchases.setLogLevel({ level: import.meta.env.DEV ? LOG_LEVEL.DEBUG : LOG_LEVEL.WARN });
     
     await Purchases.configure({
       apiKey: revenueCatApiKey,
