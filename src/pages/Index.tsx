@@ -51,6 +51,16 @@ const Index = () => {
   }, [profile]);
 
   // Initialize silent mode service for native notifications
+  // Show interstitial ad when returning from settings/schedule (free users only)
+  useEffect(() => {
+    const from = location.state?.from;
+    if ((from === 'settings' || from === 'schedule') && !isPremium && !isSilentMode) {
+      showInterstitialAd();
+      // Clear state to prevent re-trigger
+      window.history.replaceState({}, '');
+    }
+  }, [location.state]);
+
   useSilentModeService(prayers);
 
   const timeUntilNext = getTimeUntilNextPrayer();
