@@ -34,14 +34,10 @@ const Index = () => {
     getTimeUntilSilentModeEnds,
   } = usePrayerTimes();
 
-  const isPremium = profile?.subscription_status === 'premium';
   const { city: locationName, loading: locationLoading, refresh: refreshLocation } = useGeolocation();
 
-  // Manage AdMob ads - hide for premium users and during prayer
-  useAdMob({
-    isPremium,
-    isSilentMode,
-  });
+  // Manage AdMob ads - always show for all users (hidden during prayer)
+  useAdMob({ isSilentMode });
 
   // Sync prayers from cloud profile when user logs in
   useEffect(() => {
