@@ -9,7 +9,6 @@ interface SilentModePlugin {
   disableSilentMode(): Promise<{ success: boolean }>;
   checkDndPermission(): Promise<{ granted: boolean }>;
   requestDndPermission(): Promise<{ opened: boolean }>;
-  getSilentModeStatus(): Promise<{ isSilent: boolean; mode: string }>;
   scheduleAlarm(options: { triggerAtMillis: number; action: string; prayerName: string; requestCode: number }): Promise<{ success: boolean }>;
   cancelAllAlarms(): Promise<{ success: boolean }>;
 }
