@@ -218,7 +218,7 @@ const Settings = () => {
                 action={
                   <Switch
                     checked={notificationsEnabled}
-                    onCheckedChange={setNotificationsEnabled}
+                    onCheckedChange={handleToggleNotifications}
                   />
                 }
               />
