@@ -8,15 +8,9 @@ interface Profile {
   id: string;
   user_id: string;
   prayer_schedule: Prayer[];
-  subscription_status: 'free' | 'premium' | 'trial';
   created_at: string;
   updated_at: string;
 }
-
-const parseSubscriptionStatus = (status: string): 'free' | 'premium' | 'trial' => {
-  if (status === 'premium' || status === 'trial') return status;
-  return 'free';
-};
 
 const parsePrayerSchedule = (schedule: Json): Prayer[] => {
   if (!Array.isArray(schedule)) return [];
@@ -63,7 +57,6 @@ export const useAuth = () => {
           id: data.id,
           user_id: data.user_id,
           prayer_schedule: parsePrayerSchedule(data.prayer_schedule),
-          subscription_status: parseSubscriptionStatus(data.subscription_status),
           created_at: data.created_at,
           updated_at: data.updated_at,
         };

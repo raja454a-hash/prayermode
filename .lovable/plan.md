@@ -1,55 +1,52 @@
 
 
-## Remove Subscription/Premium System — Keep Ads for All Users
+# Fix: Java Source Files Deleted During CI Build
 
-### Overview
-Remove all subscription, premium, and RevenueCat-related code. The app becomes 100% free with ads always active (except during prayer silent mode).
+## Problem
+CI workflow mein `rm -rf android` command poora `android/` folder delete kar deta hai - jismein hamare custom Java files (SilentModePlugin, PrayerAlarmReceiver, BootReceiver) bhi hain. Phir `setup-android.sh` script inhi files ko usi (ab deleted) directory se copy karne ki koshish karta hai, jo silently fail ho jata hai (`|| true` ki wajah se). Isliye compiler ko `SilentModePlugin` class nahi milti.
 
-### Files to Delete
-| File | Reason |
-|------|--------|
-| `src/pages/Subscription.tsx` | Subscription page |
-| `src/hooks/useSubscription.ts` | Subscription hook |
-| `src/services/purchaseService.ts` | RevenueCat purchase service |
-| `supabase/functions/verify-subscription/index.ts` | Edge function for subscription verification |
+## Solution
+Java source files ko `android/` se bahar ek naye folder (`native-sources/android/`) mein move karna hai, taaki `rm -rf android` se delete na hon. Script ko update karenge taaki woh naye location se copy kare.
 
-### Files to Modify
+## Changes
 
-**1. `src/App.tsx`**
-- Remove `Subscription` lazy import and `/subscription` route
+### 1. Create `native-sources/android/` directory
+Move these 3 files from `android/app/src/main/java/app/lovable/salahsilent/` to `native-sources/android/`:
+- `SilentModePlugin.java`
+- `PrayerAlarmReceiver.java`
+- `BootReceiver.java`
 
-**2. `src/pages/Index.tsx`**
-- Remove `isPremium` variable and Crown button/import
-- Remove `!isPremium` check from interstitial ad logic (always show for non-silent)
-- Simplify `useAdMob` call — no `isPremium` param needed
-- Remove `Crown` from imports
-- Remove `subscription_status` reference from `UserMenu`
+### 2. Update `scripts/setup-android.sh`
+Change the `SOURCE_DIR` variable and copy commands to use the new location:
 
-**3. `src/hooks/useAdMob.ts`**
-- Remove `isPremium` from options — ads always show when not in silent mode
-- Simplify `shouldShowAds` to just `!isSilentMode`
+```bash
+# Change from:
+SOURCE_DIR="android/app/src/main/java/app/lovable/salahsilent"
 
-**4. `src/pages/Settings.tsx`**
-- Remove Subscription row (Crown icon, navigate to `/subscription`)
-- Remove `Crown` from imports
+# Change to:
+SOURCE_DIR="native-sources/android"
+```
 
-**5. `src/hooks/useAuth.ts`**
-- Remove `subscription_status` from Profile interface
-- Remove `parseSubscriptionStatus` function
-- Remove `subscription_status` from profile mapping
+Also remove the `2>/dev/null || true` so copy failures are caught instead of silently ignored.
 
-**6. `src/components/auth/UserMenu.tsx`**
-- Remove `subscriptionStatus` prop and status badge logic
-- Remove `Crown` import and premium badge
+### 3. No changes needed to:
+- `.github/workflows/build-android.yml` (workflow stays the same)
+- Java file contents (no code changes needed)
+- AndroidManifest patching logic
 
-**7. `package.json`**
-- Remove `@revenuecat/purchases-capacitor` dependency
+## Technical Details
 
-### Database Migration
-- Drop the `subscription_status` column from `profiles` table
-- Drop the RLS policy "Users can update their own profile except subscription" and replace with a simpler update policy
-- Drop `payment_transactions` table (no longer needed)
+**Files to create:**
+- `native-sources/android/SilentModePlugin.java` (moved from android/)
+- `native-sources/android/PrayerAlarmReceiver.java` (moved from android/)
+- `native-sources/android/BootReceiver.java` (moved from android/)
 
-### Edge Function Cleanup
-- Delete the `verify-subscription` edge function
+**Files to edit:**
+- `scripts/setup-android.sh` - line 10: update `SOURCE_DIR` path
 
+**Files to delete:**
+- `android/app/src/main/java/app/lovable/salahsilent/SilentModePlugin.java` (moved)
+- `android/app/src/main/java/app/lovable/salahsilent/PrayerAlarmReceiver.java` (moved)  
+- `android/app/src/main/java/app/lovable/salahsilent/BootReceiver.java` (moved)
+
+Yeh fix ke baad CI build mein Java files properly copy hongi aur `SilentModePlugin` class mil jayegi.

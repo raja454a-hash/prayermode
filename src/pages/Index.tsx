@@ -11,7 +11,7 @@ import { StatusHeader } from '@/components/StatusHeader';
 import { MosqueDecoration } from '@/components/MosqueDecoration';
 import { ManualSilentToggle } from '@/components/ManualSilentToggle';
 import { UserMenu } from '@/components/auth/UserMenu';
-import { MapPin, Settings, LogIn, Edit, Crown, RefreshCw } from 'lucide-react';
+import { MapPin, Settings, LogIn, Edit, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const Index = () => {
@@ -34,14 +34,10 @@ const Index = () => {
     getTimeUntilSilentModeEnds,
   } = usePrayerTimes();
 
-  const isPremium = profile?.subscription_status === 'premium';
   const { city: locationName, loading: locationLoading, refresh: refreshLocation } = useGeolocation();
 
-  // Manage AdMob ads - hide for premium users and during prayer
-  useAdMob({
-    isPremium,
-    isSilentMode,
-  });
+  // Manage AdMob ads - always show for all users (hidden during prayer)
+  useAdMob({ isSilentMode });
 
   // Sync prayers from cloud profile when user logs in
   useEffect(() => {
@@ -54,7 +50,7 @@ const Index = () => {
   // Show interstitial ad when returning from settings/schedule (free users only)
   useEffect(() => {
     const from = location.state?.from;
-    if ((from === 'settings' || from === 'schedule') && !isPremium && !isSilentMode) {
+    if ((from === 'settings' || from === 'schedule') && !isSilentMode) {
       showInterstitialAd();
       // Clear state to prevent re-trigger
       window.history.replaceState({}, '');
@@ -107,16 +103,6 @@ const Index = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {!isPremium && user && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate('/subscription')}
-                className="text-secondary hover:text-secondary hover:bg-secondary/10"
-              >
-                <Crown className="h-5 w-5" />
-              </Button>
-            )}
             <Button
               variant="ghost"
               size="icon"
@@ -131,7 +117,6 @@ const Index = () => {
             ) : user ? (
               <UserMenu
                 email={user.email || ''}
-                subscriptionStatus={profile?.subscription_status || 'free'}
                 onSignOut={handleSignOut}
               />
             ) : (

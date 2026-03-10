@@ -49,7 +49,7 @@ const PrivacyPolicy = () => {
                 <li>Email address (for account creation)</li>
                 <li>Prayer schedule preferences</li>
                 <li>Device information for silent mode functionality</li>
-                <li>Subscription and payment information</li>
+                
               </ul>
             </CardContent>
           </Card>
@@ -63,7 +63,7 @@ const PrivacyPolicy = () => {
               <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
                 <li>Provide and maintain the app's functionality</li>
                 <li>Manage your prayer schedules and silent mode</li>
-                <li>Process subscriptions and payments</li>
+                
                 <li>Send important notifications about prayer times</li>
                 <li>Improve our services and user experience</li>
               </ul>
@@ -88,8 +88,7 @@ const PrivacyPolicy = () => {
             <CardContent className="space-y-2">
               <p className="text-sm text-muted-foreground leading-relaxed">We use the following third-party services:</p>
               <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                <li><span className="text-foreground">Google AdMob</span> — to display ads for free users</li>
-                <li><span className="text-foreground">RevenueCat</span> — to manage subscriptions</li>
+                <li><span className="text-foreground">Google AdMob</span> — to display ads</li>
               </ul>
               <p className="text-sm text-muted-foreground leading-relaxed mt-2">
                 These services may collect data as described in their own privacy policies.
