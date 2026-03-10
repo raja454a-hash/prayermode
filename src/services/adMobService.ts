@@ -110,7 +110,7 @@ export const removeBannerAd = async (): Promise<void> => {
 export const showInterstitialAd = async (): Promise<void> => {
   try {
     await AdMob.prepareInterstitial({
-      adId: AD_UNIT_IDS.appOpen.android,
+      adId: AD_UNIT_IDS.interstitial.android,
     });
     await AdMob.showInterstitial();
     console.log('📢 Interstitial Ad shown');
