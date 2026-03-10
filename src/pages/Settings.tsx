@@ -9,7 +9,6 @@ import {
   User,
   Bell,
   Moon,
-  Crown,
   LogOut,
   ChevronRight,
   Mail,
