@@ -117,7 +117,6 @@ const Index = () => {
             ) : user ? (
               <UserMenu
                 email={user.email || ''}
-                subscriptionStatus={profile?.subscription_status || 'free'}
                 onSignOut={handleSignOut}
               />
             ) : (

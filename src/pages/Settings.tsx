@@ -185,13 +185,6 @@ const Settings = () => {
                     title="Profile"
                     description={user.email || 'Manage your account'}
                   />
-                  <div className="border-t border-border" />
-                  <SettingRow
-                    icon={<Crown className="h-5 w-5" />}
-                    title="Subscription"
-                    description={profile?.subscription_status === 'premium' ? 'Premium' : 'Free Plan'}
-                    onClick={() => navigate('/subscription')}
-                  />
                 </>
               ) : (
                 <SettingRow
